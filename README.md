@@ -1,3 +1,2 @@
 #rukk
 ran
-sakend 
