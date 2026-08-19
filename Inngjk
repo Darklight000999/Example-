@@ -1,0 +1,3090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+
+<meta name="theme-color" content="#070b16">
+
+<title>QR Studio — Liquid Glass QR Generator</title>
+
+<!-- QR ENGINE -->
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"></script>
+
+<style>
+
+/* =========================================================
+   LIQUID GLASS QR STUDIO
+========================================================= */
+
+:root{
+    --bg:#050814;
+    --bg2:#0a1020;
+
+    --glass:rgba(255,255,255,.075);
+    --glass2:rgba(255,255,255,.11);
+
+    --border:rgba(255,255,255,.16);
+    --border2:rgba(255,255,255,.08);
+
+    --text:#ffffff;
+    --muted:rgba(255,255,255,.58);
+
+    --accent:#4da3ff;
+    --accent2:#9b5cff;
+    --green:#34d399;
+
+    --shadow:
+        0 25px 80px rgba(0,0,0,.42);
+
+    --radius:24px;
+}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    min-width:320px;
+    min-height:100vh;
+
+    color:var(--text);
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 10% 5%,
+            rgba(0,122,255,.26),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 90% 10%,
+            rgba(157,78,255,.25),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 50% 100%,
+            rgba(0,210,255,.14),
+            transparent 40%
+        ),
+        linear-gradient(
+            145deg,
+            #030611,
+            #090d1d 48%,
+            #050817
+        );
+
+    overflow-x:hidden;
+
+    padding-bottom:
+        calc(95px + env(safe-area-inset-bottom));
+}
+
+/* =========================================================
+   ANIMATED BACKGROUND
+========================================================= */
+
+body::before,
+body::after{
+    content:"";
+    position:fixed;
+
+    width:280px;
+    height:280px;
+
+    border-radius:50%;
+
+    filter:blur(80px);
+
+    pointer-events:none;
+
+    z-index:-1;
+}
+
+body::before{
+    left:-100px;
+    top:35%;
+
+    background:rgba(0,160,255,.16);
+
+    animation:
+        floatBlob 10s ease-in-out infinite;
+}
+
+body::after{
+    right:-100px;
+    top:55%;
+
+    background:rgba(165,60,255,.15);
+
+    animation:
+        floatBlob2 12s ease-in-out infinite;
+}
+
+@keyframes floatBlob{
+
+    0%,100%{
+        transform:translate3d(0,0,0);
+    }
+
+    50%{
+        transform:translate3d(60px,-50px,0);
+    }
+}
+
+@keyframes floatBlob2{
+
+    0%,100%{
+        transform:translate3d(0,0,0);
+    }
+
+    50%{
+        transform:translate3d(-70px,40px,0);
+    }
+}
+
+/* =========================================================
+   APP
+========================================================= */
+
+.app{
+    width:100%;
+    max-width:1200px;
+
+    margin:auto;
+
+    padding:
+        18px
+        14px
+        30px;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    margin-bottom:18px;
+}
+
+.brand{
+    display:flex;
+    flex-direction:column;
+}
+
+.brand-title{
+    font-size:25px;
+    line-height:1;
+
+    font-weight:900;
+
+    letter-spacing:-1.4px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #fff,
+            #56aaff,
+            #bd6aff,
+            #fff
+        );
+
+    background-size:250% auto;
+
+    -webkit-background-clip:text;
+    background-clip:text;
+
+    color:transparent;
+
+    animation:
+        gradientMove 6s linear infinite;
+}
+
+.brand-title span{
+    color:#b965ff;
+}
+
+.brand-subtitle{
+    margin-top:6px;
+
+    color:var(--muted);
+
+    font-size:10px;
+
+    letter-spacing:.12em;
+}
+
+@keyframes gradientMove{
+
+    0%{
+        background-position:0%;
+    }
+
+    100%{
+        background-position:250%;
+    }
+}
+
+.header-actions{
+    display:flex;
+    gap:7px;
+}
+
+.icon-btn{
+    width:40px;
+    height:40px;
+
+    border-radius:14px;
+
+    border:1px solid var(--border);
+
+    color:white;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,.13),
+            rgba(255,255,255,.035)
+        );
+
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+
+    box-shadow:
+        inset 0 1px rgba(255,255,255,.12),
+        0 8px 25px rgba(0,0,0,.2);
+
+    font-size:17px;
+
+    transition:.25s;
+}
+
+.icon-btn:active{
+    transform:scale(.9);
+}
+
+/* =========================================================
+   MAIN LAYOUT
+========================================================= */
+
+.workspace{
+    display:grid;
+    gap:14px;
+}
+
+/* =========================================================
+   GLASS
+========================================================= */
+
+.glass{
+    border:1px solid var(--border);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.105),
+            rgba(255,255,255,.035)
+        );
+
+    backdrop-filter:
+        blur(28px)
+        saturate(145%);
+
+    -webkit-backdrop-filter:
+        blur(28px)
+        saturate(145%);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.13),
+        inset 0 -1px rgba(255,255,255,.03),
+        var(--shadow);
+}
+
+/* =========================================================
+   QR PREVIEW
+========================================================= */
+
+.preview-card{
+    position:relative;
+
+    overflow:hidden;
+
+    border-radius:30px;
+
+    padding:16px;
+
+    text-align:center;
+}
+
+.preview-card::before{
+    content:"";
+
+    position:absolute;
+
+    inset:-2px;
+
+    background:
+        linear-gradient(
+            120deg,
+            transparent 25%,
+            rgba(255,255,255,.18),
+            transparent 70%
+        );
+
+    transform:translateX(-100%);
+
+    animation:
+        glassShine 7s ease-in-out infinite;
+
+    pointer-events:none;
+}
+
+@keyframes glassShine{
+
+    0%,55%{
+        transform:translateX(-100%);
+    }
+
+    75%,100%{
+        transform:translateX(100%);
+    }
+}
+
+.preview-head{
+    position:relative;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    margin-bottom:12px;
+}
+
+.preview-title{
+    font-size:11px;
+
+    font-weight:800;
+
+    letter-spacing:.13em;
+
+    color:rgba(255,255,255,.72);
+}
+
+.live-pill{
+    display:flex;
+    align-items:center;
+    gap:5px;
+
+    padding:5px 9px;
+
+    border-radius:999px;
+
+    background:rgba(52,211,153,.10);
+
+    border:1px solid rgba(52,211,153,.25);
+
+    color:#65e6b4;
+
+    font-size:9px;
+
+    font-weight:800;
+}
+
+.live-dot{
+    width:5px;
+    height:5px;
+
+    border-radius:50%;
+
+    background:#34d399;
+
+    box-shadow:0 0 10px #34d399;
+
+    animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+
+    0%,100%{
+        opacity:1;
+        transform:scale(1);
+    }
+
+    50%{
+        opacity:.45;
+        transform:scale(.7);
+    }
+}
+
+.qr-stage{
+    position:relative;
+
+    width:min(100%,330px);
+    aspect-ratio:1;
+
+    margin:auto;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:28px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.94),
+            rgba(239,243,250,.94)
+        );
+
+    box-shadow:
+        0 25px 60px rgba(0,0,0,.35),
+        inset 0 0 0 1px rgba(255,255,255,.9);
+}
+
+.qr-stage::before{
+    content:"";
+
+    position:absolute;
+
+    inset:-2px;
+
+    border-radius:30px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(90,180,255,.8),
+            transparent 40%,
+            rgba(178,90,255,.7)
+        );
+
+    z-index:-1;
+
+    filter:blur(8px);
+
+    opacity:.65;
+}
+
+#qrPreview{
+    width:90%;
+    height:90%;
+
+    display:grid;
+    place-items:center;
+}
+
+#qrPreview canvas,
+#qrPreview svg{
+    max-width:100%;
+    max-height:100%;
+
+    border-radius:12px;
+}
+
+.scan-label{
+    position:absolute;
+
+    left:50%;
+    bottom:-13px;
+
+    transform:translateX(-50%);
+
+    white-space:nowrap;
+
+    padding:8px 18px;
+
+    border-radius:999px;
+
+    color:white;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(10,16,35,.95),
+            rgba(35,20,70,.95)
+        );
+
+    border:1px solid rgba(255,255,255,.22);
+
+    box-shadow:
+        0 8px 25px rgba(0,0,0,.35);
+
+    font-size:11px;
+
+    font-weight:850;
+
+    letter-spacing:.08em;
+
+    backdrop-filter:blur(20px);
+}
+
+/* =========================================================
+   MAIN TABS
+========================================================= */
+
+.main-tabs{
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    padding:4px;
+
+    margin-top:10px;
+
+    border-radius:18px;
+
+    background:
+        rgba(255,255,255,.06);
+
+    border:1px solid var(--border2);
+}
+
+.main-tab{
+    height:44px;
+
+    border:0;
+
+    border-radius:14px;
+
+    color:var(--muted);
+
+    background:transparent;
+
+    font-size:12px;
+
+    font-weight:800;
+
+    transition:.3s;
+}
+
+.main-tab.active{
+    color:white;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(65,153,255,.85),
+            rgba(139,76,255,.82)
+        );
+
+    box-shadow:
+        0 8px 25px rgba(81,99,255,.25),
+        inset 0 1px rgba(255,255,255,.35);
+}
+
+/* =========================================================
+   PANELS
+========================================================= */
+
+.panel{
+    border-radius:24px;
+
+    padding:15px;
+
+    margin-top:14px;
+}
+
+.hidden{
+    display:none!important;
+}
+
+/* =========================================================
+   WEBSITE
+========================================================= */
+
+.section-label{
+    display:block;
+
+    margin-bottom:7px;
+
+    font-size:11px;
+
+    font-weight:800;
+
+    color:rgba(255,255,255,.72);
+}
+
+.input{
+    width:100%;
+
+    height:47px;
+
+    padding:0 14px;
+
+    border-radius:14px;
+
+    border:1px solid var(--border);
+
+    outline:none;
+
+    color:white;
+
+    background:
+        rgba(0,0,0,.18);
+
+    transition:.25s;
+}
+
+.input::placeholder{
+    color:rgba(255,255,255,.35);
+}
+
+.input:focus{
+    border-color:rgba(75,160,255,.75);
+
+    box-shadow:
+        0 0 0 3px rgba(75,160,255,.12);
+}
+
+.generate-btn{
+    width:100%;
+
+    height:46px;
+
+    margin-top:9px;
+
+    border-radius:14px;
+
+    color:white;
+
+    font-weight:850;
+
+    border:1px solid rgba(255,255,255,.2);
+
+    background:
+        linear-gradient(
+            100deg,
+            #218fff,
+            #7754ff,
+            #bd4dff
+        );
+
+    background-size:200% 100%;
+
+    box-shadow:
+        0 12px 30px rgba(82,85,255,.28),
+        inset 0 1px rgba(255,255,255,.35);
+
+    animation:
+        buttonGradient 5s linear infinite;
+
+    transition:.2s;
+}
+
+@keyframes buttonGradient{
+
+    0%{
+        background-position:0%;
+    }
+
+    100%{
+        background-position:200%;
+    }
+}
+
+.generate-btn:active{
+    transform:scale(.98);
+}
+
+/* =========================================================
+   DESIGN SUB TABS
+========================================================= */
+
+.design-tabs{
+    display:grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    margin:-15px -15px 15px;
+
+    border-bottom:1px solid var(--border2);
+}
+
+.design-tab{
+    position:relative;
+
+    height:48px;
+
+    border:0;
+
+    color:var(--muted);
+
+    background:transparent;
+
+    font-size:10px;
+
+    font-weight:850;
+
+    transition:.25s;
+}
+
+.design-tab.active{
+    color:#fff;
+}
+
+.design-tab.active::after{
+    content:"";
+
+    position:absolute;
+
+    left:20%;
+    right:20%;
+    bottom:-1px;
+
+    height:2px;
+
+    border-radius:10px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #35a9ff,
+            #b45cff
+        );
+
+    box-shadow:
+        0 0 12px #7d72ff;
+}
+
+/* =========================================================
+   DESIGN PANEL
+========================================================= */
+
+.design-panel{
+    display:none;
+
+    animation:
+        panelIn .25s ease;
+}
+
+.design-panel.active{
+    display:block;
+}
+
+@keyframes panelIn{
+
+    from{
+        opacity:0;
+        transform:translateY(7px);
+    }
+
+    to{
+        opacity:1;
+        transform:none;
+    }
+}
+
+.section-title-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    margin-bottom:10px;
+}
+
+.section-title{
+    font-size:14px;
+    font-weight:850;
+}
+
+.view-all{
+    border:0;
+
+    color:#73baff;
+
+    background:transparent;
+
+    font-size:10px;
+
+    font-weight:800;
+}
+
+.section-subtitle{
+    margin-top:-5px;
+
+    margin-bottom:12px;
+
+    color:var(--muted);
+
+    font-size:10px;
+}
+
+/* =========================================================
+   OPTION GRID
+========================================================= */
+
+.option-grid{
+    display:grid;
+
+    grid-template-columns:
+        repeat(4,minmax(0,1fr));
+
+    gap:7px;
+}
+
+.option{
+    position:relative;
+
+    min-width:0;
+
+    aspect-ratio:1;
+
+    border-radius:14px;
+
+    border:1px solid var(--border);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.095),
+            rgba(255,255,255,.025)
+        );
+
+    color:white;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:5px;
+
+    transition:
+        transform .2s,
+        border-color .2s,
+        background .2s,
+        box-shadow .2s;
+}
+
+.option:hover{
+    border-color:rgba(100,175,255,.45);
+}
+
+.option:active{
+    transform:scale(.94);
+}
+
+.option.active{
+    transform:scale(1.035);
+
+    border-color:
+        rgba(72,166,255,.95);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(54,151,255,.22),
+            rgba(148,72,255,.14)
+        );
+
+    box-shadow:
+        0 8px 24px rgba(50,130,255,.16),
+        inset 0 1px rgba(255,255,255,.2);
+}
+
+.option.active::before{
+    content:"✓";
+
+    position:absolute;
+
+    top:5px;
+    right:6px;
+
+    width:15px;
+    height:15px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:50%;
+
+    color:#fff;
+
+    background:#38a8ff;
+
+    font-size:8px;
+    font-weight:900;
+}
+
+.option-name{
+    max-width:90%;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+    font-size:8px;
+
+    font-weight:800;
+
+    color:rgba(255,255,255,.78);
+}
+
+.option-icon{
+    width:39px;
+    height:39px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:11px;
+
+    font-size:20px;
+
+    background:
+        rgba(255,255,255,.08);
+
+    border:1px solid rgba(255,255,255,.08);
+}
+
+/* =========================================================
+   STICKER PREVIEWS
+========================================================= */
+
+.sticker-preview{
+    position:relative;
+
+    width:43px;
+    height:36px;
+
+    display:grid;
+    place-items:center;
+
+    color:white;
+
+    font-size:7px;
+
+    font-weight:900;
+
+    border:1.5px solid currentColor;
+
+    border-radius:8px;
+}
+
+.sticker-rounded{
+    border-radius:16px;
+}
+
+.sticker-dashed{
+    border-style:dashed;
+}
+
+.sticker-double{
+    border-width:3px;
+}
+
+.sticker-pill{
+    width:48px;
+    height:22px;
+
+    border-radius:999px;
+}
+
+.sticker-arrow::after{
+    content:"";
+
+    position:absolute;
+
+    right:-7px;
+
+    width:12px;
+    height:12px;
+
+    border-top:2px solid currentColor;
+    border-right:2px solid currentColor;
+
+    transform:rotate(45deg);
+}
+
+.sticker-bubble{
+    border-radius:50%;
+}
+
+.sticker-ticket{
+    border-radius:4px;
+}
+
+/* =========================================================
+   SHAPES
+========================================================= */
+
+.shape-preview{
+    width:42px;
+    height:42px;
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    gap:3px;
+
+    padding:4px;
+}
+
+.shape-preview i{
+    background:#fff;
+
+    display:block;
+}
+
+.shape-square i{
+    border-radius:0;
+}
+
+.shape-rounded i{
+    border-radius:4px;
+}
+
+.shape-dot i{
+    border-radius:50%;
+}
+
+.shape-soft i{
+    border-radius:8px;
+}
+
+.shape-diamond i{
+    transform:rotate(45deg) scale(.75);
+}
+
+.shape-heart i{
+    border-radius:50%;
+}
+
+.shape-star i{
+    clip-path:
+        polygon(
+            50% 0,
+            61% 35%,
+            100% 38%,
+            70% 58%,
+            80% 100%,
+            50% 75%,
+            20% 100%,
+            30% 58%,
+            0 38%,
+            39% 35%
+        );
+}
+
+/* =========================================================
+   LOGO LIBRARY
+========================================================= */
+
+.logo-symbol{
+    width:40px;
+    height:40px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:11px;
+
+    color:white;
+
+    font-weight:950;
+
+    font-size:18px;
+
+    background:
+        rgba(255,255,255,.08);
+
+    border:1px solid rgba(255,255,255,.09);
+}
+
+.youtube{
+    background:#ff0033;
+}
+
+.instagram{
+    background:
+        linear-gradient(
+            135deg,
+            #7c28ff,
+            #ff315f,
+            #ffc93c
+        );
+}
+
+.facebook{
+    background:#1877f2;
+}
+
+.whatsapp{
+    background:#25d366;
+}
+
+.tiktok{
+    background:#000;
+}
+
+.linkedin{
+    background:#0a66c2;
+}
+
+.telegram{
+    background:#229ed9;
+}
+
+.pinterest{
+    background:#e60023;
+}
+
+.snapchat{
+    background:#ffe600;
+    color:#111;
+}
+
+.xlogo{
+    background:#000;
+}
+
+.discord{
+    background:#5865f2;
+}
+
+.spotify{
+    background:#1ed760;
+    color:#111;
+}
+
+.vimeo{
+    background:#19b7ea;
+}
+
+.twitch{
+    background:#9146ff;
+}
+
+.netflix{
+    background:#e50914;
+}
+
+.apple{
+    background:#111;
+}
+
+/* =========================================================
+   UPLOAD BOXES
+========================================================= */
+
+.upload-grid{
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:8px;
+
+    margin-top:12px;
+}
+
+.upload-btn{
+    min-height:74px;
+
+    border-radius:15px;
+
+    border:1px dashed rgba(120,185,255,.45);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(70,150,255,.12),
+            rgba(150,70,255,.08)
+        );
+
+    color:white;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:4px;
+
+    text-align:center;
+
+    transition:.2s;
+}
+
+.upload-btn:active{
+    transform:scale(.97);
+}
+
+.upload-icon{
+    font-size:22px;
+}
+
+.upload-btn strong{
+    font-size:10px;
+}
+
+.upload-btn small{
+    font-size:8px;
+
+    color:var(--muted);
+}
+
+.upload-btn input{
+    display:none;
+}
+
+/* =========================================================
+   BRICK PATTERNS
+========================================================= */
+
+.brick{
+    width:42px;
+    height:42px;
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(5,1fr);
+
+    grid-auto-rows:1fr;
+
+    gap:2px;
+
+    padding:3px;
+
+    background:#080b14;
+
+    border-radius:8px;
+}
+
+.brick i{
+    background:white;
+    border-radius:1px;
+}
+
+.brick-heart i{
+    border-radius:50%;
+}
+
+.brick-diamond i{
+    transform:rotate(45deg) scale(.65);
+}
+
+.brick-wave i:nth-child(even){
+    transform:translateY(2px);
+}
+
+.brick-random i:nth-child(3n){
+    opacity:.35;
+}
+
+/* =========================================================
+   AUDIO
+========================================================= */
+
+.audio-preview{
+    width:44px;
+    height:35px;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    gap:2px;
+}
+
+.audio-preview i{
+    width:3px;
+
+    border-radius:10px;
+
+    background:#fff;
+
+    animation:
+        audioWave .8s ease-in-out infinite alternate;
+}
+
+.audio-preview i:nth-child(1){height:10px}
+.audio-preview i:nth-child(2){height:20px}
+.audio-preview i:nth-child(3){height:29px}
+.audio-preview i:nth-child(4){height:16px}
+.audio-preview i:nth-child(5){height:25px}
+.audio-preview i:nth-child(6){height:12px}
+.audio-preview i:nth-child(7){height:22px}
+
+@keyframes audioWave{
+
+    from{
+        transform:scaleY(.65);
+    }
+
+    to{
+        transform:scaleY(1.1);
+    }
+}
+
+/* =========================================================
+   COLOR OPTIONS
+========================================================= */
+
+.color-preview{
+    width:42px;
+    height:42px;
+
+    border-radius:13px;
+
+    border:1px solid rgba(255,255,255,.18);
+
+    box-shadow:
+        inset 0 1px rgba(255,255,255,.3);
+}
+
+.c-black{
+    background:#050505;
+}
+
+.c-white{
+    background:#fff;
+}
+
+.c-red{
+    background:#ef233c;
+}
+
+.c-yellow{
+    background:#f6c945;
+}
+
+.c-green{
+    background:#22c55e;
+}
+
+.c-blue{
+    background:#3182ff;
+}
+
+.c-purple{
+    background:#8b5cf6;
+}
+
+.c-pink{
+    background:#ec4899;
+}
+
+.c-cyan{
+    background:#06b6d4;
+}
+
+.c-orange{
+    background:#f97316;
+}
+
+.c-gradient{
+    background:
+        linear-gradient(
+            135deg,
+            #ff3b30,
+            #ffcc00,
+            #34c759,
+            #007aff,
+            #af52de
+        );
+}
+
+/* =========================================================
+   CUSTOM COLOR
+========================================================= */
+
+.custom-color{
+    margin-top:13px;
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:8px;
+}
+
+.color-picker-wrap{
+    position:relative;
+
+    height:46px;
+
+    border-radius:13px;
+
+    overflow:hidden;
+
+    border:1px solid var(--border);
+}
+
+.color-picker{
+    width:100%;
+    height:100%;
+
+    border:0;
+
+    padding:0;
+
+    background:transparent;
+
+    cursor:pointer;
+}
+
+.color-picker::-webkit-color-swatch-wrapper{
+    padding:0;
+}
+
+.color-picker::-webkit-color-swatch{
+    border:0;
+}
+
+/* =========================================================
+   SMART EXTRACT
+========================================================= */
+
+.extract-box{
+    margin-top:13px;
+
+    padding:12px;
+
+    border-radius:17px;
+
+    border:1px solid rgba(255,255,255,.10);
+
+    background:
+        rgba(0,0,0,.14);
+}
+
+.extract-row{
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+}
+
+.extract-thumb{
+    width:48px;
+    height:48px;
+
+    border-radius:12px;
+
+    object-fit:cover;
+
+    background:
+        linear-gradient(
+            135deg,
+            #111,
+            #333
+        );
+
+    border:1px solid rgba(255,255,255,.14);
+}
+
+.extract-info{
+    flex:1;
+}
+
+.extract-info strong{
+    display:block;
+
+    font-size:11px;
+}
+
+.extract-info small{
+    display:block;
+
+    margin-top:3px;
+
+    color:var(--muted);
+
+    font-size:8px;
+}
+
+.extract-btn{
+    height:34px;
+
+    padding:0 11px;
+
+    border-radius:10px;
+
+    border:1px solid rgba(255,255,255,.14);
+
+    background:
+        rgba(100,160,255,.15);
+
+    color:#8ec8ff;
+
+    font-size:9px;
+
+    font-weight:850;
+}
+
+/* =========================================================
+   QUICK CREATE
+========================================================= */
+
+.quick-grid{
+    display:grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    gap:7px;
+}
+
+.quick{
+    min-height:66px;
+
+    border-radius:14px;
+
+    border:1px solid var(--border);
+
+    background:
+        rgba(255,255,255,.055);
+
+    color:white;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:5px;
+
+    transition:.2s;
+}
+
+.quick:active{
+    transform:scale(.94);
+}
+
+.quick-icon{
+    font-size:20px;
+}
+
+.quick-name{
+    font-size:8px;
+
+    color:var(--muted);
+
+    font-weight:800;
+}
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+.history{
+    display:flex;
+
+    gap:7px;
+
+    overflow-x:auto;
+
+    padding-bottom:3px;
+
+    scrollbar-width:none;
+}
+
+.history::-webkit-scrollbar{
+    display:none;
+}
+
+.history-item{
+    flex:0 0 68px;
+
+    height:68px;
+
+    border-radius:13px;
+
+    padding:4px;
+
+    background:#fff;
+
+    border:1px solid rgba(255,255,255,.15);
+}
+
+.history-item img{
+    width:100%;
+    height:100%;
+
+    object-fit:contain;
+
+    border-radius:9px;
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status{
+    min-height:18px;
+
+    text-align:center;
+
+    margin:9px 0;
+
+    color:rgba(255,255,255,.55);
+
+    font-size:9px;
+}
+
+/* =========================================================
+   DOWNLOAD BAR
+========================================================= */
+
+.download-bar{
+    position:fixed;
+
+    z-index:100;
+
+    left:0;
+    right:0;
+    bottom:0;
+
+    padding:
+        9px
+        12px
+        calc(9px + env(safe-area-inset-bottom));
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(5,8,20,.15),
+            rgba(5,8,20,.88)
+        );
+
+    backdrop-filter:blur(24px);
+
+    -webkit-backdrop-filter:blur(24px);
+
+    border-top:
+        1px solid rgba(255,255,255,.09);
+}
+
+.download-inner{
+    width:100%;
+
+    max-width:1180px;
+
+    margin:auto;
+
+    display:grid;
+
+    grid-template-columns:48px 1fr 48px;
+
+    gap:8px;
+}
+
+.download-side{
+    width:48px;
+    height:48px;
+
+    border-radius:15px;
+
+    border:1px solid var(--border);
+
+    color:white;
+
+    background:
+        rgba(255,255,255,.08);
+
+    font-size:18px;
+}
+
+.download-btn{
+    height:48px;
+
+    border-radius:15px;
+
+    border:1px solid rgba(255,255,255,.25);
+
+    color:white;
+
+    background:
+        linear-gradient(
+            100deg,
+            #4b9cff,
+            #8d50ff,
+            #d34cff
+        );
+
+    box-shadow:
+        0 10px 35px rgba(112,78,255,.35),
+        inset 0 1px rgba(255,255,255,.35);
+
+    font-weight:900;
+
+    transition:.2s;
+}
+
+.download-btn:active{
+    transform:scale(.98);
+}
+
+.download-btn small{
+    display:block;
+
+    margin-top:2px;
+
+    font-size:7px;
+
+    opacity:.75;
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.modal{
+    position:fixed;
+
+    inset:0;
+
+    z-index:300;
+
+    display:none;
+
+    align-items:flex-end;
+
+    justify-content:center;
+
+    padding:12px;
+
+    background:
+        rgba(0,0,0,.6);
+
+    backdrop-filter:blur(10px);
+}
+
+.modal.open{
+    display:flex;
+}
+
+.modal-card{
+    width:100%;
+
+    max-width:520px;
+
+    max-height:85vh;
+
+    overflow:auto;
+
+    padding:18px;
+
+    border-radius:27px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(25,31,52,.96),
+            rgba(10,14,29,.96)
+        );
+
+    border:1px solid var(--border);
+
+    box-shadow:
+        0 30px 100px rgba(0,0,0,.65);
+}
+
+.modal-header{
+    display:flex;
+
+    align-items:center;
+    justify-content:space-between;
+
+    margin-bottom:15px;
+}
+
+.modal-header h3{
+    font-size:16px;
+}
+
+.close-btn{
+    width:34px;
+    height:34px;
+
+    border-radius:10px;
+
+    background:rgba(255,255,255,.08);
+
+    color:white;
+
+    border:1px solid var(--border);
+}
+
+/* =========================================================
+   DESKTOP
+========================================================= */
+
+@media(min-width:760px){
+
+    body{
+        padding-bottom:30px;
+    }
+
+    .app{
+        padding-top:28px;
+    }
+
+    .workspace{
+        grid-template-columns:
+            minmax(330px, .95fr)
+            minmax(360px, 1.05fr);
+
+        align-items:start;
+    }
+
+    .preview-column{
+        position:sticky;
+
+        top:20px;
+    }
+
+    .design-column{
+        min-width:0;
+    }
+
+    .download-bar{
+        position:static;
+
+        margin-top:14px;
+
+        background:transparent;
+
+        border:0;
+
+        padding:0;
+    }
+
+    .download-inner{
+        grid-template-columns:56px 1fr 56px;
+    }
+
+    .download-side{
+        width:56px;
+        height:54px;
+    }
+
+    .download-btn{
+        height:54px;
+    }
+}
+
+/* =========================================================
+   SMALL PHONE
+========================================================= */
+
+@media(max-width:360px){
+
+    .app{
+        padding-left:10px;
+        padding-right:10px;
+    }
+
+    .option-grid{
+        gap:5px;
+    }
+
+    .option-name{
+        font-size:7px;
+    }
+
+    .option-icon,
+    .logo-symbol,
+    .color-preview{
+        transform:scale(.9);
+    }
+
+    .upload-grid{
+        gap:6px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="header">
+
+        <div class="brand">
+
+            <div class="brand-title">
+                QR <span>STUDIO</span>
+            </div>
+
+            <div class="brand-subtitle">
+                CREATE • CUSTOMIZE • SHARE
+            </div>
+
+        </div>
+
+        <div class="header-actions">
+
+            <button class="icon-btn" id="themeBtn">
+                ☾
+            </button>
+
+            <button class="icon-btn" id="historyBtn">
+                ◫
+            </button>
+
+            <button class="icon-btn" id="settingsBtn">
+                ⚙
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         WORKSPACE
+    ====================================================== -->
+
+    <main class="workspace">
+
+
+        <!-- =================================================
+             LEFT / PREVIEW
+        ================================================== -->
+
+        <div class="preview-column">
+
+            <section class="preview-card glass">
+
+                <div class="preview-head">
+
+                    <div class="preview-title">
+                        LIVE QR PREVIEW
+                    </div>
+
+                    <div class="live-pill">
+
+                        <span class="live-dot"></span>
+
+                        LIVE
+
+                    </div>
+
+                </div>
+
+
+                <div class="qr-stage">
+
+                    <div id="qrPreview"></div>
+
+                    <div
+                        class="scan-label"
+                        id="scanLabel">
+
+                        SCAN ME
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- MAIN TABS -->
+
+            <div class="main-tabs">
+
+                <button
+                    class="main-tab active"
+                    id="websiteTab">
+
+                    Add Website Link
+
+                </button>
+
+                <button
+                    class="main-tab"
+                    id="designTab">
+
+                    Design QR Code
+
+                </button>
+
+            </div>
+
+
+            <!-- WEBSITE PANEL -->
+
+            <section
+                class="panel glass"
+                id="websitePanel">
+
+                <label class="section-label">
+                    ENTER WEBSITE URL
+                </label>
+
+                <input
+                    class="input"
+                    id="urlInput"
+                    type="url"
+                    value="https://example.com"
+                    placeholder="https://yourwebsite.com">
+
+                <button
+                    class="generate-btn"
+                    id="generateBtn">
+
+                    ✦ Generate QR
+
+                </button>
+
+            </section>
+
+
+            <!-- DESIGN MOBILE PANEL -->
+
+            <section
+                class="panel glass hidden"
+                id="designMobilePanel">
+
+                <div class="section-title-row">
+
+                    <div class="section-title">
+                        Design QR
+                    </div>
+
+                </div>
+
+                <p class="section-subtitle">
+                    Customize your QR code
+                </p>
+
+                <button
+                    class="generate-btn"
+                    id="openDesign">
+
+                    Open Design Studio
+
+                </button>
+
+            </section>
+
+
+            <!-- QUICK CREATE -->
+
+            <section class="panel glass">
+
+                <div class="section-title-row">
+
+                    <div class="section-title">
+                        Quick Create
+                    </div>
+
+                </div>
+
+                <div class="quick-grid">
+
+                    <button class="quick" data-quick="website">
+                        <span class="quick-icon">◎</span>
+                        <span class="quick-name">Website</span>
+                    </button>
+
+                    <button class="quick" data-quick="wifi">
+                        <span class="quick-icon">⌁</span>
+                        <span class="quick-name">Wi-Fi</span>
+                    </button>
+
+                    <button class="quick" data-quick="text">
+                        <span class="quick-icon">▤</span>
+                        <span class="quick-name">Text</span>
+                    </button>
+
+                    <button class="quick" data-quick="email">
+                        <span class="quick-icon">✉</span>
+                        <span class="quick-name">Email</span>
+                    </button>
+
+                    <button class="quick" data-quick="phone">
+                        <span class="quick-icon">☎</span>
+                        <span class="quick-name">Phone</span>
+                    </button>
+
+                    <button class="quick" data-quick="sms">
+                        <span class="quick-icon">◌</span>
+                        <span class="quick-name">SMS</span>
+                    </button>
+
+                    <button class="quick" data-quick="vcard">
+                        <span class="quick-icon">♙</span>
+                        <span class="quick-name">vCard</span>
+                    </button>
+
+                    <button class="quick" data-quick="upi">
+                        <span class="quick-icon">↗</span>
+                        <span class="quick-name">UPI</span>
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- HISTORY -->
+
+            <section class="panel glass">
+
+                <div class="section-title-row">
+
+                    <div class="section-title">
+                        History
+                    </div>
+
+                    <button
+                        class="view-all"
+                        id="clearHistory">
+
+                        Clear
+
+                    </button>
+
+                </div>
+
+                <div
+                    class="history"
+                    id="history">
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+        <!-- =================================================
+             DESIGN COLUMN
+        ================================================== -->
+
+        <div class="design-column">
+
+            <section class="panel glass" id="designStudio">
+
+                <!-- DESIGN TABS -->
+
+                <div class="design-tabs">
+
+                    <button
+                        class="design-tab active"
+                        data-design="stickerPanel">
+
+                        Sticker
+
+                    </button>
+
+                    <button
+                        class="design-tab"
+                        data-design="colorPanel">
+
+                        Color
+
+                    </button>
+
+                    <button
+                        class="design-tab"
+                        data-design="shapePanel">
+
+                        Shapes
+
+                    </button>
+
+                    <button
+                        class="design-tab"
+                        data-design="logoPanel">
+
+                        Logo
+
+                    </button>
+
+                </div>
+
+
+                <!-- =========================================
+                     STICKER
+                ========================================== -->
+
+                <div
+                    class="design-panel active"
+                    id="stickerPanel">
+
+                    <div class="section-title-row">
+
+                        <div class="section-title">
+                            Sticker Style
+                        </div>
+
+                        <button class="view-all">
+                            View All
+                        </button>
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        Add a premium frame around your QR
+                    </p>
+
+
+                    <div class="option-grid">
+
+
+                        <button
+                            class="option active sticker-option"
+                            data-label="SCAN ME">
+
+                            <span class="sticker-preview">
+                                SCAN ME
+                            </span>
+
+                            <span class="option-name">
+                                Classic
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option sticker-option"
+                            data-label="SCAN">
+
+                            <span class="sticker-preview sticker-rounded">
+                                SCAN
+                            </span>
+
+                            <span class="option-name">
+                                Rounded
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option sticker-option"
+                            data-label="SCAN ME">
+
+                            <span class="sticker-preview sticker-dashed">
+                                SCAN ME
+                            </span>
+
+                            <span class="option-name">
+                                Dashed
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option sticker-option"
+                            data-label="OPEN">
+
+                            <span class="sticker-preview sticker-double">
+                                OPEN
+                            </span>
+
+                            <span class="option-name">
+                                Double
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option sticker-option"
+                            data-label="SCAN">
+
+                            <span class="sticker-preview sticker-pill">
+                                SCAN
+                            </span>
+
+                            <span class="option-name">
+                                Pill
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option sticker-option"
+                            data-label="SCAN">
+
+                            <span class="sticker-preview sticker-arrow">
+                                SCAN
+                            </span>
+
+                            <span class="option-name">
+                                Arrow
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option sticker-option"
+                            data-label="SCAN">
+
+                            <span class="sticker-preview sticker-bubble">
+                                SCAN
+                            </span>
+
+                            <span class="option-name">
+                                Bubble
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option sticker-option"
+                            data-label="OPEN">
+
+                            <span class="sticker-preview sticker-ticket">
+                                OPEN
+                            </span>
+
+                            <span class="option-name">
+                                Ticket
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option sticker-option"
+                            data-label="SCAN ME">
+
+                            <span class="sticker-preview">
+                                QR
+                            </span>
+
+                            <span class="option-name">
+                                Label
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option sticker-option"
+                            data-label="TAP">
+
+                            <span class="sticker-preview sticker-rounded">
+                                TAP
+                            </span>
+
+                            <span class="option-name">
+                                Tap
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option sticker-option"
+                            data-label="OPEN">
+
+                            <span class="sticker-preview sticker-dashed">
+                                OPEN
+                            </span>
+
+                            <span class="option-name">
+                                Modern
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option sticker-option"
+                            data-label="SCAN ME">
+
+                            <span class="sticker-preview sticker-pill">
+                                SCAN ME
+                            </span>
+
+                            <span class="option-name">
+                                Capsule
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     COLOR
+                ========================================== -->
+
+                <div
+                    class="design-panel"
+                    id="colorPanel">
+
+                    <div class="section-title-row">
+
+                        <div class="section-title">
+                            QR Color
+                        </div>
+
+                        <button class="view-all">
+                            View All
+                        </button>
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        Choose a solid or gradient QR theme
+                    </p>
+
+
+                    <div class="option-grid">
+
+
+                        <button
+                            class="option active color-option"
+                            data-color="#050505">
+
+                            <span class="color-preview c-black"></span>
+
+                            <span class="option-name">
+                                Black
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option color-option"
+                            data-color="#ffffff">
+
+                            <span class="color-preview c-white"></span>
+
+                            <span class="option-name">
+                                White
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option color-option"
+                            data-color="#ef233c">
+
+                            <span class="color-preview c-red"></span>
+
+                            <span class="option-name">
+                                Red
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option color-option"
+                            data-color="#f6c945">
+
+                            <span class="color-preview c-yellow"></span>
+
+                            <span class="option-name">
+                                Yellow
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option color-option"
+                            data-color="#22c55e">
+
+                            <span class="color-preview c-green"></span>
+
+                            <span class="option-name">
+                                Green
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option color-option"
+                            data-color="#3182ff">
+
+                            <span class="color-preview c-blue"></span>
+
+                            <span class="option-name">
+                                Blue
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option color-option"
+                            data-color="#8b5cf6">
+
+                            <span class="color-preview c-purple"></span>
+
+                            <span class="option-name">
+                                Purple
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option color-option"
+                            data-color="#ec4899">
+
+                            <span class="color-preview c-pink"></span>
+
+                            <span class="option-name">
+                                Pink
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option color-option"
+                            data-color="#06b6d4">
+
+                            <span class="color-preview c-cyan"></span>
+
+                            <span class="option-name">
+                                Cyan
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option color-option"
+                            data-color="#f97316">
+
+                            <span class="color-preview c-orange"></span>
+
+                            <span class="option-name">
+                                Orange
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option color-option"
+                            data-gradient="true">
+
+                            <span class="color-preview c-gradient"></span>
+
+                            <span class="option-name">
+                                Gradient
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option"
+                            id="customColorOption">
+
+                            <span class="color-preview"
+                                  id="customColorPreview"
+                                  style="background:#00d4ff">
+
+                            </span>
+
+                            <span class="option-name">
+                                Custom
+                            </span>
+
+                        </button>
+
+                    </div>
+
+
+                    <!-- CUSTOM COLOR -->
+
+                    <div class="custom-color">
+
+                        <div class="color-picker-wrap">
+
+                            <input
+                                type="color"
+                                id="customColor"
+                                class="color-picker"
+                                value="#00d4ff">
+
+                        </div>
+
+                        <button
+                            class="generate-btn"
+                            id="applyColor"
+                            style="margin:0">
+
+                            Apply Color
+
+                        </button>
+
+                    </div>
+
+
+                    <!-- IMAGE EXTRACT -->
+
+                    <div class="extract-box">
+
+                        <div class="extract-row">
+
+                            <img
+                                class="extract-thumb"
+                                id="extractThumb"
+                                alt="">
+
+                            <div class="extract-info">
+
+                                <strong>
+                                    Smart Color Extract
+                                </strong>
+
+                                <small>
+                                    Upload an image and automatically
+                                    extract its dominant QR theme.
+                                </small>
+
+                            </div>
+
+                            <button
+                                class="extract-btn"
+                                id="extractColorBtn">
+
+                                Extract
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <label class="upload-btn"
+                           style="margin-top:8px">
+
+                        <span class="upload-icon">
+                            ▧
+                        </span>
+
+                        <strong>
+                            Upload Image
+                        </strong>
+
+                        <small>
+                            JPG • PNG • WEBP
+                        </small>
+
+                        <input
+                            type="file"
+                            id="colorImageInput"
+                            accept="image/*">
+
+                    </label>
+
+                </div>
+
+
+                <!-- =========================================
+                     SHAPES
+                ========================================== -->
+
+                <div
+                    class="design-panel"
+                    id="shapePanel">
+
+                    <div class="section-title-row">
+
+                        <div class="section-title">
+                            QR Shapes
+                        </div>
+
+                        <button class="view-all">
+                            View All
+                        </button>
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        Change the QR module pattern
+                    </p>
+
+
+                    <div class="option-grid">
+
+
+                        <button
+                            class="option active shape-option"
+                            data-shape="square">
+
+                            <span class="shape-preview shape-square">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Square
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option shape-option"
+                            data-shape="rounded">
+
+                            <span class="shape-preview shape-rounded">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Rounded
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option shape-option"
+                            data-shape="dots">
+
+                            <span class="shape-preview shape-dot">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Dots
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option shape-option"
+                            data-shape="extra-rounded">
+
+                            <span class="shape-preview shape-soft">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Soft
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option shape-option"
+                            data-shape="diamond">
+
+                            <span class="shape-preview shape-diamond">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Diamond
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option shape-option"
+                            data-shape="star">
+
+                            <span class="shape-preview shape-star">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Star
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option shape-option"
+                            data-shape="heart">
+
+                            <span class="shape-preview shape-heart">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Heart
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option shape-option"
+                            data-shape="circle">
+
+                            <span class="shape-preview shape-dot">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Circle
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option shape-option"
+                            data-shape="classy">
+
+                            <span class="shape-preview shape-rounded">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Classy
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option shape-option"
+                            data-shape="classy-rounded">
+
+                            <span class="shape-preview shape-soft">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Classy+
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option shape-option"
+                            data-shape="square">
+
+                            <span class="shape-preview shape-square">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Pixel
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="option shape-option"
+                            data-shape="dots">
+
+                            <span class="shape-preview shape-dot">
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                                <i></i><i></i><i></i><i></i>
+                            </span>
+
+                            <span class="option-name">
+                                Bubble
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     LOGO
+                ========================================== -->
+
+                <div
+                    class="design-panel"
+                    id="logoPanel">
+
+                    <div class="section-title-row">
+
+                        <div class="section-title">
+                            Logo Library
+                        </div>
+
+                        <button class="view-all">
+                            View All
+                        </button>
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        Add social, video, audio or custom logos
+                    </p>
+
+
+                    <div class="option-grid">
+
+
+                        <button class="option logo-option active"
+                                data-logo="">
+
+                            <span class="logo-symbol">
+                                QR
+                            </span>
+
+                            <span class="option-name">
+                                None
+                            </span>
+
+                        </button>
+
+
+                        <button class="option logo-option"
+                                data-logo-type="youtube">
+
+                            <span class="logo-symbol youtube">
+                                ▶
+                            </span>
+
+                            <span class="option-name">
+                                YouTube
+                            </span>
+
+                        </button>
+
+
+                        <button class="option logo-option"
+                                data-logo-type="instagram">
+
+                            <span class="logo-symbol instagram">
+                                ◎
+                            </span>
+
+                            <span class="option-name">
+                                Instagram
+                            </span>
+
+                        </button>
+
+
+                        <button class="option logo-option"
+                                data-logo-type="facebook">
+
+                            <span class="logo-symbol facebook">
+                                f
+                            </span>
+
+                            <span class="option-name">
+                                Facebook
+                            </span>
+
+                        </button>
+
+
+                        <button class="option logo-option"
+                                data-logo-type="whatsapp">
+
+                            <span class="logo-symbol whatsapp">
+                                ☎
+                            </span>
+
+                            <span class="option-name">
+                                WhatsApp
+                            </span>
+
+                        </button>
+
+
+                        <button class="option logo-option"
+                                data-logo-type="tiktok">
+
+                            <span class="logo-symbol tiktok">
+                                ♪
+                            </span>
+
+                           
