@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>QR Studio — Liquid Glass QR Generator</title>
+
+<!-- QR ENGINE -->
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"></script>
+
+<style>
+/* =========================================================
+   LIQUID GLASS QR STUDIO - CUSTOM RED & GOLD THEME
+========================================================= */
+:root{
+    --bg:#050505;
+    --bg2:#0a0a0a;
+    --glass:rgba(212,175,55,.075);
+    --glass2:rgba(212,175,55,.11);
+    --border:rgba(212,175,55,.25);
+    --border2:rgba(212,175,55,.15);
+    --text:#F4F4F4;
+    --muted:rgba(244,244,244,.58);
+    --accent:#8B0000;
+    --accent2:#D4AF37;
+    --green:#34d399;
+    --shadow:0 25px 80px rgba(0,0,0,.6);
+    --radius:24px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+    min-width:320px;
+    min-height:100vh;
+    color:var(--text);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;
+    background:
+        radial-gradient(circle at 10% 5%,rgba(139,0,0,.3),transparent 32%),
+        radial-gradient(circle at 90% 10%,rgba(212,175,55,.2),transparent 30%),
+        radial-gradient(circle at 50% 100%,rgba(139,0,0,.2),transparent 40%),
+        linear-gradient(145deg,#050505,#0a0a0a 48%,#000000);
+    overflow-x:hidden;
+    padding-bottom:calc(95px + env(safe-area-inset-bottom));
+}
+body::before,body::after{content:"";position:fixed;width:280px;height:280px;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;}
+body::before{left:-100px;top:35%;background:rgba(139,0,0,.25);animation:floatBlob 10s ease-in-out infinite;}
+body::after{right:-100px;top:55%;background:rgba(212,175,55,.2);animation:floatBlob2 12s ease-in-out infinite;}
+@keyframes floatBlob{0%,100%{transform:translate3d(0,0,0);}50%{transform:translate3d(60px,-50px,0);}}
+@keyframes floatBlob2{0%,100%{transform:translate3d(0,0,0);}50%{transform:translate3d(-70px,40px,0);}}
+.app{width:100%;max-width:1200px;margin:auto;padding:18px 14px 30px;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.brand{display:flex;flex-direction:column;}
+.brand-title{font-size:25px;line-height:1;font-weight:900;letter-spacing:-1.4px;background:linear-gradient(90deg,#F4F4F4,#D4AF37,#8B0000,#F4F4F4);background-size:250% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gradientMove 6s linear infinite;}
+.brand-title span{color:#D4AF37;}
+.brand-subtitle{margin-top:6px;color:var(--muted);font-size:10px;letter-spacing:.12em;}
+@keyframes gradientMove{0%{background-position:0%;}100%{background-position:250%;}}
+.header-actions{display:flex;gap:7px;}
+.icon-btn{width:40px;height:40px;border-radius:14px;border:1px solid var(--border);color:white;background:linear-gradient(135deg,rgba(255,255,255,.1),rgba(255,255,255,.02));backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:inset 0 1px rgba(255,255,255,.1),0 8px 25px rgba(0,0,0,.3);font-size:17px;transition:.25s; cursor:pointer;}
+.icon-btn:active{transform:scale(.9);}
+.workspace{display:grid;gap:14px;}
+.glass{border:1px solid var(--border);background:linear-gradient(145deg,rgba(212,175,55,.08),rgba(212,175,55,.02));backdrop-filter:blur(28px) saturate(145%);-webkit-backdrop-filter:blur(28px) saturate(145%);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 -1px rgba(255,255,255,.03),var(--shadow);}
+.preview-card{position:relative;overflow:hidden;border-radius:30px;padding:16px;text-align:center;}
+.preview-card::before{content:"";position:absolute;inset:-2px;background:linear-gradient(120deg,transparent 25%,rgba(212,175,55,.2),transparent 70%);transform:translateX(-100%);animation:glassShine 7s ease-in-out infinite;pointer-events:none;}
+@keyframes glassShine{0%,55%{transform:translateX(-100%);}75%,100%{transform:translateX(100%);}}
+.preview-head{position:relative;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.preview-title{font-size:11px;font-weight:800;letter-spacing:.13em;color:rgba(244,244,244,.72);}
+.live-pill{display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;background:rgba(52,211,153,.10);border:1px solid rgba(52,211,153,.25);color:#65e6b4;font-size:9px;font-weight:800;}
+.live-dot{width:5px;height:5px;border-radius:50%;background:#34d399;box-shadow:0 0 10px #34d399;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.45;transform:scale(.7);}}
+
+/* QR STAGE & FRAMES */
+.qr-stage{position:relative;width:min(100%,330px);aspect-ratio:1;margin:auto;display:grid;place-items:center;border-radius:28px;background:linear-gradient(145deg,rgba(244,244,244,.94),rgba(230,230,230,.94));box-shadow:0 25px 60px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.9);}
+.qr-stage::before{content:"";position:absolute;inset:-2px;border-radius:30px;background:linear-gradient(135deg,rgba(139,0,0,.8),transparent 40%,rgba(212,175,55,.7));z-index:-1;filter:blur(8px);opacity:.65;}
+
+/* NEW: Outer Frame Wrapper */
+#qrFrameWrapper {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+    max-width: 90%;
+    max-height: 90%;
+}
+#qrPreview{width:100%;height:100%;display:grid;place-items:center;}
+#qrPreview canvas,#qrPreview svg{max-width:100%;max-height:100%;border-radius:8px;}
+
+/* Custom CSS Frames */
+.qrf-none { padding: 0; background: transparent; border: none; }
+.qrf-phone { padding: 12px 10px 35px 10px; background: #222; border-radius: 20px; border: 2px solid #444; box-shadow: inset 0 0 0 4px #111; }
+.qrf-polaroid { padding: 12px 12px 40px 12px; background: #fff; border: 1px solid #ddd; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+.qrf-clipboard { padding: 30px 12px 12px 12px; background: #D4AF37; border-radius: 6px; position:relative; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.qrf-clipboard::before { content:''; position:absolute; top:-8px; left:50%; transform:translateX(-50%); width:40px; height:12px; background:#8B0000; border-radius:4px; border:2px solid #fff; }
+.qrf-monitor { padding: 10px 10px 30px 10px; background: #333; border-radius: 8px 8px 0 0; border: 2px solid #555; position:relative; }
+.qrf-monitor::after { content:''; position:absolute; bottom:5px; left:50%; transform:translateX(-50%); width:30px; height:4px; background:#666; border-radius:2px; }
+.qrf-envelope { padding: 35px 15px 15px 15px; background: #F4F4F4; border: 2px solid #ccc; border-radius: 4px; position:relative; }
+.qrf-envelope::before { content:''; position:absolute; top:0; left:0; right:0; height:25px; background:linear-gradient(135deg, #e0e0e0 50%, transparent 50%); border-radius: 4px 4px 0 0; }
+.qrf-bubble { padding: 15px; background: #fff; border-radius: 15px; position:relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+.qrf-bubble::after { content:''; position:absolute; bottom:-10px; left:20px; border-width: 10px 10px 0 0; border-style:solid; border-color: #fff transparent transparent transparent; }
+.qrf-ticket { padding: 15px; background: #F4F4F4; border: 3px dashed #8B0000; border-radius: 12px; }
+.qrf-badge { padding: 15px; background: #fff; border: 4px solid #D4AF37; border-radius: 50%; box-shadow: 0 0 0 4px #8B0000; }
+.qrf-badge #qrPreview canvas { border-radius: 50% !important; }
+.qrf-tablet { padding: 20px 10px; background: #111; border-radius: 12px; border: 3px solid #666; }
+.qrf-card { padding: 10px 40px 10px 10px; background: linear-gradient(135deg, #8B0000, #4a0000); border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+/* Scan Label */
+.scan-label{position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);white-space:nowrap;padding:8px 18px;border-radius:999px;color:#F4F4F4;background:linear-gradient(135deg,#8B0000,#4a0000);border:1px solid rgba(212,175,55,.5);box-shadow:0 8px 25px rgba(0,0,0,.5);font-size:11px;font-weight:850;letter-spacing:.08em;backdrop-filter:blur(20px); z-index:3;}
+
+.main-tabs{display:grid;grid-template-columns:1fr 1fr;padding:4px;margin-top:10px;border-radius:18px;background:rgba(212,175,55,.08);border:1px solid var(--border2);}
+.main-tab{height:44px;border:0;border-radius:14px;color:var(--muted);background:transparent;font-size:12px;font-weight:800;transition:.3s; cursor:pointer;}
+.main-tab.active{color:#F4F4F4;background:linear-gradient(135deg,#8B0000,#D4AF37);box-shadow:0 8px 25px rgba(139,0,0,.4),inset 0 1px rgba(255,255,255,.35);}
+.panel{border-radius:24px;padding:15px;margin-top:14px;}
+.hidden{display:none!important;}
+.section-label{display:block;margin-bottom:7px;font-size:11px;font-weight:800;color:rgba(244,244,244,.72);}
+.input{width:100%;height:47px;padding:0 14px;border-radius:14px;border:1px solid var(--border);outline:none;color:#F4F4F4;background:rgba(0,0,0,.3);transition:.25s;}
+.input::placeholder{color:rgba(244,244,244,.35);}
+.input:focus{border-color:rgba(212,175,55,.75);box-shadow:0 0 0 3px rgba(212,175,55,.15);}
+.generate-btn{width:100%;height:46px;margin-top:9px;border-radius:14px;color:#F4F4F4;font-weight:850;border:1px solid rgba(255,255,255,.2);background:linear-gradient(100deg,#8B0000,#D4AF37,#8B0000);background-size:200% 100%;box-shadow:0 12px 30px rgba(139,0,0,.4),inset 0 1px rgba(255,255,255,.35);animation:buttonGradient 5s linear infinite;transition:.2s; cursor:pointer;}
+@keyframes buttonGradient{0%{background-position:0%;}100%{background-position:200%;}}
+.generate-btn:active{transform:scale(.98);}
+.design-tabs{display:grid;grid-template-columns:repeat(4,1fr);margin:-15px -15px 15px;border-bottom:1px solid var(--border2);}
+.design-tab{position:relative;height:48px;border:0;color:var(--muted);background:transparent;font-size:10px;font-weight:850;transition:.25s; cursor:pointer;}
+.design-tab.active{color:#F4F4F4;}
+.design-tab.active::after{content:"";position:absolute;left:20%;right:20%;bottom:-1px;height:2px;border-radius:10px;background:linear-gradient(90deg,#8B0000,#D4AF37);box-shadow:0 0 12px rgba(212,175,55,.6);}
+.design-panel{display:none;animation:panelIn .25s ease;}
+.design-panel.active{display:block;}
+@keyframes panelIn{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
+.section-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.section-title{font-size:14px;font-weight:850;}
+.view-all{border:0;color:#D4AF37;background:transparent;font-size:10px;font-weight:800; cursor:pointer;}
+.section-subtitle{margin-top:-5px;margin-bottom:12px;color:var(--muted);font-size:10px;}
+.option-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
+.option{position:relative;min-width:0;aspect-ratio:1;border-radius:14px;border:1px solid var(--border);background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.01));color:#F4F4F4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s; cursor:pointer;}
+.option:hover{border-color:rgba(212,175,55,.45);}
+.option:active{transform:scale(.94);}
+.option.active{transform:scale(1.035);border-color:rgba(212,175,55,.95);background:linear-gradient(145deg,rgba(139,0,0,.3),rgba(212,175,55,.15));box-shadow:0 8px 24px rgba(139,0,0,.3),inset 0 1px rgba(255,255,255,.2);}
+.option.active::before{content:"✓";position:absolute;top:5px;right:6px;width:15px;height:15px;display:grid;place-items:center;border-radius:50%;color:#050505;background:#D4AF37;font-size:8px;font-weight:900; z-index:5;}
+.option-name{max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px;font-weight:800;color:rgba(244,244,244,.78);}
+.option-icon{width:39px;height:39px;display:grid;place-items:center;border-radius:11px;font-size:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);}
+
+/* STICKERS */
+.sticker-preview{position:relative;width:43px;height:36px;display:grid;place-items:center;color:#F4F4F4;font-size:7px;font-weight:900;border:1.5px solid currentColor;border-radius:8px;}
+.sticker-rounded{border-radius:16px;}
+.sticker-dashed{border-style:dashed;}
+.sticker-double{border-width:3px;}
+.sticker-pill{width:48px;height:22px;border-radius:999px;}
+.sticker-arrow::after{content:"";position:absolute;right:-7px;width:12px;height:12px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg);}
+.sticker-bubble{border-radius:50%;}
+.sticker-ticket{border-radius:4px;}
+
+/* FRAME PREVIEWS */
+.frame-preview{width:38px;height:38px;display:grid;place-items:center;background:rgba(255,255,255,.1);border-radius:8px;border:1px solid rgba(255,255,255,.2);}
+.fp-phone{width:22px;height:32px;border:2px solid #F4F4F4;border-radius:4px;border-bottom-width:6px;}
+.fp-polaroid{width:28px;height:32px;background:#F4F4F4;border-bottom:8px solid #F4F4F4; position:relative;}
+.fp-polaroid::after{content:'';position:absolute;inset:2px;background:#333;}
+.fp-clip{width:26px;height:30px;border:2px solid #F4F4F4;border-radius:2px;position:relative;}
+.fp-clip::before{content:'';position:absolute;top:-4px;left:6px;right:6px;height:4px;background:#F4F4F4;}
+.fp-env{width:30px;height:22px;border:2px solid #F4F4F4;position:relative;}
+.fp-env::before{content:'';position:absolute;top:0;left:0;border-width:10px 13px 0 13px;border-style:solid;border-color:#F4F4F4 transparent transparent transparent;}
+.fp-bub{width:28px;height:24px;border:2px solid #F4F4F4;border-radius:6px;position:relative;}
+.fp-bub::after{content:'';position:absolute;bottom:-6px;left:4px;border-width:6px 6px 0 0;border-style:solid;border-color:#F4F4F4 transparent transparent transparent;}
+
+/* SHAPES & EDGES (Existing 9 edges & valid patterns) */
+.shape-preview{width:42px;height:42px;display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding:4px;}
+.shape-preview i{background:#F4F4F4;display:block;}
+.shape-square i{border-radius:0;} .shape-rounded i{border-radius:4px;} .shape-dot i{border-radius:50%;} .shape-soft i{border-radius:8px;} .shape-classy i{border-radius:10px 0 10px 0;} .shape-classy-rnd i{border-radius:50% 50% 0 50%;}
+.edge-preview{width:32px;height:32px;border:3px solid #F4F4F4;display:grid;place-items:center;}
+.edge-preview i{width:12px;height:12px;background:#F4F4F4;display:block;}
+.e-sq{border-radius:0;} .e-sq i{border-radius:0;} .e-rnd{border-radius:8px;} .e-rnd i{border-radius:50%;} .e-dt{border-radius:50%;} .e-dt i{border-radius:50%;} .e-rnd-sq{border-radius:8px;} .e-rnd-sq i{border-radius:0;} .e-sq-dt{border-radius:0;} .e-sq-dt i{border-radius:50%;} .e-dt-sq{border-radius:50%;} .e-dt-sq i{border-radius:0;}
+.e-ruby{border-color:#8B0000 !important;} .e-ruby i{background:#8B0000 !important;} .e-gold{border-color:#D4AF37 !important;} .e-gold i{background:#D4AF37 !important;} .e-mix-color{border-color:#8B0000 !important;} .e-mix-color i{background:#D4AF37 !important;}
+
+/* LOGOS */
+.logo-symbol{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;color:#F4F4F4;font-weight:950;font-size:18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.09);}
+.youtube{background:#ff0033;} .instagram{background:linear-gradient(135deg,#7c28ff,#ff315f,#ffc93c);} .facebook{background:#1877f2;} .whatsapp{background:#25d366;} .tiktok{background:#000;} .linkedin{background:#0a66c2;} .telegram{background:#229ed9;} .pinterest{background:#e60023;} .snapchat{background:#ffe600;color:#111;} .xlogo{background:#000;} .discord{background:#5865f2;} .spotify{background:#1ed760;color:#111;} .vimeo{background:#19b7ea;} .twitch{background:#9146ff;} .netflix{background:#e50914;} .apple{background:#111;}
+
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.upload-btn{min-height:74px;border-radius:15px;border:1px dashed rgba(212,175,55,.45);background:linear-gradient(145deg,rgba(139,0,0,.15),rgba(212,175,55,.08));color:#F4F4F4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;transition:.2s; cursor:pointer;}
+.upload-btn:active{transform:scale(.97);}
+.upload-icon{font-size:22px;}
+.upload-btn strong{font-size:10px;}
+.upload-btn small{font-size:8px;color:var(--muted);}
+.upload-btn input{display:none;}
+.color-preview{width:42px;height:42px;border-radius:13px;border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px rgba(255,255,255,.3);}
+.c-black{background:#050505;} .c-white{background:#F4F4F4;} .c-red{background:#8B0000;} .c-yellow{background:#D4AF37;} .c-green{background:#22c55e;} .c-blue{background:#3182ff;} .c-purple{background:#8b5cf6;} .c-pink{background:#ec4899;} .c-cyan{background:#06b6d4;} .c-orange{background:#f97316;} .c-gradient{background:linear-gradient(135deg,#8B0000,#D4AF37,#8B0000);}
+.color-picker-wrap{position:relative;height:46px;border-radius:13px;overflow:hidden;border:1px solid var(--border);}
+.color-picker{width:100%;height:100%;border:0;padding:0;background:transparent;cursor:pointer;}
+.extract-box{margin-top:13px;padding:12px;border-radius:17px;border:1px solid rgba(212,175,55,.15);background:rgba(0,0,0,.3);}
+.extract-row{display:flex;align-items:center;gap:10px;}
+.extract-thumb{width:48px;height:48px;border-radius:12px;object-fit:cover;background:linear-gradient(135deg,#111,#222);border:1px solid rgba(255,255,255,.14);}
+.extract-info{flex:1;}
+.extract-info strong{display:block;font-size:11px;}
+.extract-info small{display:block;margin-top:3px;color:var(--muted);font-size:8px;}
+.extract-btn{height:34px;padding:0 11px;border-radius:10px;border:1px solid rgba(212,175,55,.25);background:rgba(212,175,55,.15);color:#D4AF37;font-size:9px;font-weight:850; cursor:pointer;}
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+.quick{min-height:66px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:#F4F4F4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:.2s; cursor:pointer;}
+.quick:active{transform:scale(.94);}
+.quick-icon{font-size:20px;}
+.quick-name{font-size:8px;color:var(--muted);font-weight:800;}
+.history{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none;}
+.history::-webkit-scrollbar{display:none;}
+.history-item{flex:0 0 68px;height:68px;border-radius:13px;padding:4px;background:#F4F4F4;border:1px solid rgba(255,255,255,.15);}
+.history-item img{width:100%;height:100%;object-fit:contain;border-radius:9px;}
+.status{min-height:18px;text-align:center;margin:9px 0;color:var(--muted);font-size:9px;}
+.download-bar{position:fixed;z-index:100;left:0;right:0;bottom:0;padding:9px 12px calc(9px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(5,5,5,.3),rgba(5,5,5,.95));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(212,175,55,.15);}
+.download-inner{width:100%;max-width:1180px;margin:auto;display:grid;grid-template-columns:48px 1fr 48px;gap:8px;}
+.download-side{width:48px;height:48px;border-radius:15px;border:1px solid var(--border);color:#F4F4F4;background:rgba(212,175,55,.1);font-size:18px; cursor:pointer;}
+.download-btn{height:48px;border-radius:15px;border:1px solid rgba(255,255,255,.25);color:#F4F4F4;background:linear-gradient(100deg,#8B0000,#D4AF37,#8B0000);box-shadow:0 10px 35px rgba(139,0,0,.4),inset 0 1px rgba(255,255,255,.35);font-weight:900;transition:.2s; cursor:pointer;}
+.download-btn:active{transform:scale(.98);}
+.download-btn small{display:block;margin-top:2px;font-size:7px;opacity:.75;}
+@media(min-width:760px){
+    body{padding-bottom:30px;}
+    .app{padding-top:28px;}
+    .workspace{grid-template-columns:minmax(330px, .95fr) minmax(360px, 1.05fr);align-items:start;}
+    .preview-column{position:sticky;top:20px;}
+    .download-bar{position:static;margin-top:14px;background:transparent;border:0;padding:0;}
+    .download-inner{grid-template-columns:56px 1fr 56px;}
+    .download-side{width:56px;height:54px;}
+    .download-btn{height:54px;}
+}
+@media(max-width:360px){
+    .app{padding-left:10px;padding-right:10px;}
+    .option-grid{gap:5px;}
+    .option-name{font-size:7px;}
+    .option-icon,.logo-symbol,.color-preview{transform:scale(.9);}
+    .upload-grid{gap:6px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="brand">
+            <div class="brand-title">QR <span>STUDIO</span></div>
+            <div class="brand-subtitle">CREATE • CUSTOMIZE • SHARE</div>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" id="themeBtn">☾</button>
+            <button class="icon-btn" id="historyBtn">◫</button>
+            <button class="icon-btn" id="settingsBtn">⚙</button>
+        </div>
+    </header>
+
+    <!-- WORKSPACE -->
+    <main class="workspace">
+
+        <!-- PREVIEW COLUMN -->
+        <div class="preview-column">
+            <section class="preview-card glass">
+                <div class="preview-head">
+                    <div class="preview-title">LIVE QR PREVIEW</div>
+                    <div class="live-pill">
+                        <span class="live-dot"></span>LIVE
+                    </div>
+                </div>
+                
+                <div class="qr-stage">
+                    <!-- NEW WRAPPER FOR CSS FRAMES -->
+                    <div id="qrFrameWrapper" class="qrf-none">
+                        <div id="qrPreview"></div>
+                    </div>
+                    <div class="scan-label" id="scanLabel">SCAN ME</div>
+                </div>
+
+            </section>
+
+            <!-- MAIN TABS -->
+            <div class="main-tabs">
+                <button class="main-tab active" id="websiteTab">Add Website Link</button>
+                <button class="main-tab" id="designTab">Design QR Code</button>
+            </div>
+
+            <!-- WEBSITE PANEL -->
+            <section class="panel glass" id="websitePanel">
+                <label class="section-label">ENTER WEBSITE URL</label>
+                <input class="input" id="urlInput" type="url" value="https://example.com" placeholder="https://yourwebsite.com">
+                <button class="generate-btn" id="generateBtn">✦ Generate QR</button>
+            </section>
+
+            <!-- DESIGN MOBILE PANEL -->
+            <section class="panel glass hidden" id="designMobilePanel">
+                <div class="section-title-row">
+                    <div class="section-title">Design QR</div>
+                </div>
+                <p class="section-subtitle">Customize your QR code</p>
+                <button class="generate-btn" id="openDesign">Open Design Studio</button>
+            </section>
+
+            <!-- QUICK CREATE -->
+            <section class="panel glass" id="quickPanel">
+                <div class="section-title-row">
+                    <div class="section-title">Quick Create</div>
+                </div>
+                <div class="quick-grid">
+                    <button class="quick" data-type="url"><span class="quick-icon">◎</span><span class="quick-name">Website</span></button>
+                    <button class="quick" data-type="wifi"><span class="quick-icon">⌁</span><span class="quick-name">Wi-Fi</span></button>
+                    <button class="quick" data-type="text"><span class="quick-icon">▤</span><span class="quick-name">Text</span></button>
+                    <button class="quick" data-type="email"><span class="quick-icon">✉</span><span class="quick-name">Email</span></button>
+                    <button class="quick" data-type="phone"><span class="quick-icon">☎</span><span class="quick-name">Phone</span></button>
+                    <button class="quick" data-type="sms"><span class="quick-icon">◌</span><span class="quick-name">SMS</span></button>
+                    <button class="quick" data-type="vcard"><span class="quick-icon">♙</span><span class="quick-name">vCard</span></button>
+                    <button class="quick" data-type="upi"><span class="quick-icon">↗</span><span class="quick-name">UPI</span></button>
+                </div>
+            </section>
+
+            <!-- HISTORY -->
+            <section class="panel glass" id="historyPanel">
+                <div class="section-title-row">
+                    <div class="section-title">History</div>
+                    <button class="view-all" id="clearHistory">Clear</button>
+                </div>
+                <div class="history" id="history">
+                    <div class="status">No history yet</div>
+                </div>
+            </section>
+        </div>
+
+        <!-- DESIGN COLUMN -->
+        <div class="design-column">
+            <section class="panel glass" id="designStudio">
+
+                <!-- DESIGN TABS -->
+                <div class="design-tabs">
+                    <button class="design-tab active" data-design="stickerPanel">Stickers & Frames</button>
+                    <button class="design-tab" data-design="colorPanel">Color</button>
+                    <button class="design-tab" data-design="shapePanel">Shapes</button>
+                    <button class="design-tab" data-design="logoPanel">Logo</button>
+                </div>
+
+                <!-- 1. STICKER & FRAMES PANEL -->
+                <div class="design-panel active" id="stickerPanel">
+                    
+                    <!-- NEW OUTER FRAMES SECTION -->
+                    <div class="section-title-row">
+                        <div class="section-title">Outer Frames</div>
+                        <button class="view-all">View All</button>
+                    </div>
+                    <p class="section-subtitle">Add beautiful outer bodies to your QR Code</p>
+
+                    <div class="option-grid" style="margin-bottom: 24px;">
+                        <button class="option active frame-option" data-frame="qrf-none">
+                            <span class="frame-preview"><span style="font-size:18px;">❌</span></span>
+                            <span class="option-name">None</span>
+                        </button>
+                        <button class="option frame-option" data-frame="qrf-phone">
+                            <span class="frame-preview"><div class="fp-phone"></div></span>
+                            <span class="option-name">Phone</span>
+                        </button>
+                        <button class="option frame-option" data-frame="qrf-polaroid">
+                            <span class="frame-preview"><div class="fp-polaroid"></div></span>
+                            <span class="option-name">Polaroid</span>
+                        </button>
+                        <button class="option frame-option" data-frame="qrf-clipboard">
+                            <span class="frame-preview"><div class="fp-clip"></div></span>
+                            <span class="option-name">Clipboard</span>
+                        </button>
+                        
+                        <button class="option frame-option" data-frame="qrf-envelope">
+                            <span class="frame-preview"><div class="fp-env"></div></span>
+                            <span class="option-name">Envelope</span>
+                        </button>
+                        <button class="option frame-option" data-frame="qrf-bubble">
+                            <span class="frame-preview"><div class="fp-bub"></div></span>
+                            <span class="option-name">Chat Bubble</span>
+                        </button>
+                        <button class="option frame-option" data-frame="qrf-monitor">
+                            <span class="frame-preview"><span style="font-size:18px;">🖥️</span></span>
+                            <span class="option-name">Monitor</span>
+                        </button>
+                        <button class="option frame-option" data-frame="qrf-badge">
+                            <span class="frame-preview"><span style="font-size:18px;">🏅</span></span>
+                            <span class="option-name">Badge</span>
+                        </button>
+
+                        <button class="option frame-option" data-frame="qrf-ticket">
+                            <span class="frame-preview"><span style="font-size:18px;">🎟️</span></span>
+                            <span class="option-name">Ticket</span>
+                        </button>
+                        <button class="option frame-option" data-frame="qrf-tablet">
+                            <span class="frame-preview"><span style="font-size:18px;">📱</span></span>
+                            <span class="option-name">Tablet</span>
+                        </button>
+                        <button class="option frame-option" data-frame="qrf-card">
+                            <span class="frame-preview"><span style="font-size:18px;">💳</span></span>
+                            <span class="option-name">Card</span>
+                        </button>
+                        <button class="option frame-option" data-frame="qrf-none">
+                            <span class="frame-preview"><span style="font-size:18px;">🛍️</span></span>
+                            <span class="option-name">Shopping</span>
+                        </button>
+                    </div>
+
+                    <!-- STICKER LABELS SECTION -->
+                    <div class="section-title-row">
+                        <div class="section-title">Sticker Labels</div>
+                    </div>
+                    <p class="section-subtitle">Add text frames around your QR</p>
+
+                    <div style="display:flex; gap:8px; margin-bottom:14px;">
+                        <input class="input" id="customStickerText" type="text" placeholder="Custom Sticker Text..." style="height:38px; font-size:11px; flex:1;">
+                        <label class="extract-btn" style="height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; width:120px;">
+                            Upload Sticker
+                            <input type="file" id="customStickerUpload" accept="image/*" style="display:none;">
+                        </label>
+                    </div>
+
+                    <div class="option-grid">
+                        <button class="option active sticker-option" data-label="SCAN ME" data-class=""><span class="sticker-preview">SCAN ME</span><span class="option-name">Classic</span></button>
+                        <button class="option sticker-option" data-label="SCAN" data-class="sticker-rounded"><span class="sticker-preview sticker-rounded">SCAN</span><span class="option-name">Rounded</span></button>
+                        <button class="option sticker-option" data-label="SCAN ME" data-class="sticker-dashed"><span class="sticker-preview sticker-dashed">SCAN ME</span><span class="option-name">Dashed</span></button>
+                        <button class="option sticker-option" data-label="OPEN" data-class="sticker-double"><span class="sticker-preview sticker-double">OPEN</span><span class="option-name">Double</span></button>
+                        
+                        <button class="option sticker-option" data-label="SCAN" data-class="sticker-pill"><span class="sticker-preview sticker-pill">SCAN</span><span class="option-name">Pill</span></button>
+                        <button class="option sticker-option" data-label="SCAN" data-class="sticker-arrow"><span class="sticker-preview sticker-arrow">SCAN</span><span class="option-name">Arrow</span></button>
+                        <button class="option sticker-option" data-label="SCAN" data-class="sticker-bubble"><span class="sticker-preview sticker-bubble">SCAN</span><span class="option-name">Bubble</span></button>
+                        <button class="option sticker-option" data-label="OPEN" data-class="sticker-ticket"><span class="sticker-preview sticker-ticket">OPEN</span><span class="option-name">Ticket</span></button>
+                    </div>
+                </div>
+
+                <!-- 2. COLOR PANEL -->
+                <div class="design-panel" id="colorPanel">
+                    <div class="section-title-row">
+                        <div class="section-title">QR Color & Background</div>
+                    </div>
+                    <p class="section-subtitle">Customize QR and background theme</p>
+
+                    <div class="option-grid" style="margin-bottom:12px;">
+                        <button class="option active color-option" data-color="#050505"><span class="color-preview c-black"></span><span class="option-name">Black</span></button>
+                        <button class="option color-option" data-color="#F4F4F4"><span class="color-preview c-white"></span><span class="option-name">White</span></button>
+                        <button class="option color-option" data-color="#8B0000"><span class="color-preview c-red"></span><span class="option-name">Red</span></button>
+                        <button class="option color-option" data-color="#D4AF37"><span class="color-preview c-yellow"></span><span class="option-name">Gold</span></button>
+                        <button class="option color-option" data-color="#22c55e"><span class="color-preview c-green"></span><span class="option-name">Green</span></button>
+                        <button class="option color-option" data-color="#3182ff"><span class="color-preview c-blue"></span><span class="option-name">Blue</span></button>
+                        <button class="option color-option" data-color="#8b5cf6"><span class="color-preview c-purple"></span><span class="option-name">Purple</span></button>
+                        <button class="option color-option" data-color="#ec4899"><span class="color-preview c-pink"></span><span class="option-name">Pink</span></button>
+                    </div>
+
+                    <!-- BACKGROUND & DOTS COLOR SELECTOR -->
+                    <div style="background:rgba(0,0,0,.3); padding:12px; border-radius:17px; border:1px solid rgba(212,175,55,.15);">
+                        <div style="display:flex; gap:10px;">
+                            <div style="flex:1;">
+                                <label style="font-size:9px; color:var(--muted); display:block; margin-bottom:5px; font-weight:bold;">QR DOTS COLOR</label>
+                                <div class="color-picker-wrap">
+                                    <input type="color" id="customColorDots" class="color-picker" value="#8B0000">
+                                </div>
+                            </div>
+                            <div style="flex:1;">
+                                <label style="font-size:9px; color:var(--muted); display:block; margin-bottom:5px; font-weight:bold;">BACKGROUND COLOR</label>
+                                <div class="color-picker-wrap">
+                                    <input type="color" id="customColorBg" class="color-picker" value="#ffffff">
+                                </div>
+                            </div>
+                        </div>
+                        <button class="generate-btn" id="applyColorsBtn" style="margin-top:10px; height:38px; font-size:11px;">Apply Custom Colors</button>
+                    </div>
+
+                    <!-- SMART EXTRACT & UPLOAD -->
+                    <div class="extract-box">
+                        <div class="extract-row">
+                            <img class="extract-thumb" id="extractThumb" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="">
+                            <div class="extract-info">
+                                <strong>Smart Color Extract</strong>
+                                <small>Upload an image to extract theme.</small>
+                            </div>
+                            <button class="extract-btn" id="extractColorBtn">Extract</button>
+                        </div>
+                    </div>
+                    <label class="upload-btn" style="margin-top:8px">
+                        <span class="upload-icon">▧</span>
+                        <strong>Upload Image</strong>
+                        <small>JPG • PNG • WEBP</small>
+                        <input type="file" id="colorImageInput" accept="image/*">
+                    </label>
+                </div>
+
+                <!-- 3. SHAPE PANEL (Patterns + 9 Edges) -->
+                <div class="design-panel" id="shapePanel">
+                    
+                    <div class="section-title-row">
+                        <div class="section-title">QR Patterns</div>
+                    </div>
+                    <p class="section-subtitle">Select a valid, scannable QR module pattern</p>
+
+                    <div class="option-grid">
+                        <button class="option active shape-option" data-shape="square"><span class="shape-preview shape-square"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="option-name">Square</span></button>
+                        <button class="option shape-option" data-shape="rounded"><span class="shape-preview shape-rounded"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="option-name">Rounded</span></button>
+                        <button class="option shape-option" data-shape="extra-rounded"><span class="shape-preview shape-soft"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="option-name">Extra Round</span></button>
+                        <button class="option shape-option" data-shape="dots"><span class="shape-preview shape-dot"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="option-name">Dots</span></button>
+                        
+                        <button class="option shape-option" data-shape="classy"><span class="shape-preview shape-classy"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="option-name">Classy</span></button>
+                        <button class="option shape-option" data-shape="classy-rounded"><span class="shape-preview shape-classy-rnd"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="option-name">Classy+</span></button>
+                        <button class="option shape-option" data-shape="square"><span class="shape-preview shape-square"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="option-name">Pixel</span></button>
+                        <button class="option shape-option" data-shape="dots"><span class="shape-preview shape-dot"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="option-name">Bubble</span></button>
+                    </div>
+
+                    <!-- 9 EDGES (CORNERS) SECTION -->
+                    <div class="section-title-row" style="margin-top:20px;">
+                        <div class="section-title">QR Edges (Corners)</div>
+                    </div>
+                    <p class="section-subtitle">Customize the outer frame & inner corner eye</p>
+
+                    <div class="option-grid">
+                        <button class="option active edge-option" data-edge="square" data-dot="square" data-ecolor="">
+                            <span class="edge-preview e-sq"><i></i></span>
+                            <span class="option-name">Square</span>
+                        </button>
+                        <button class="option edge-option" data-edge="extra-rounded" data-dot="dot" data-ecolor="">
+                            <span class="edge-preview e-rnd"><i></i></span>
+                            <span class="option-name">Rounded</span>
+                        </button>
+                        <button class="option edge-option" data-edge="dot" data-dot="dot" data-ecolor="">
+                            <span class="edge-preview e-dt"><i></i></span>
+                            <span class="option-name">Dot</span>
+                        </button>
+                        
+                        <button class="option edge-option" data-edge="extra-rounded" data-dot="square" data-ecolor="">
+                            <span class="edge-preview e-rnd-sq"><i></i></span>
+                            <span class="option-name">Soft Sq</span>
+                        </button>
+                        <button class="option edge-option" data-edge="square" data-dot="dot" data-ecolor="">
+                            <span class="edge-preview e-sq-dt"><i></i></span>
+                            <span class="option-name">Sq Dot</span>
+                        </button>
+                        <button class="option edge-option" data-edge="dot" data-dot="square" data-ecolor="">
+                            <span class="edge-preview e-dt-sq"><i></i></span>
+                            <span class="option-name">Dot Sq</span>
+                        </button>
+
+                        <button class="option edge-option" data-edge="extra-rounded" data-dot="dot" data-ecolor="#8B0000">
+                            <span class="edge-preview e-rnd e-ruby"><i></i></span>
+                            <span class="option-name">Ruby Edge</span>
+                        </button>
+                        <button class="option edge-option" data-edge="square" data-dot="square" data-ecolor="#D4AF37">
+                            <span class="edge-preview e-sq e-gold"><i></i></span>
+                            <span class="option-name">Gold Sq</span>
+                        </button>
+                        <button class="option edge-option" data-edge="dot" data-dot="square" data-ecolor="#8B0000">
+                            <span class="edge-preview e-dt-sq e-mix-color"><i></i></span>
+                            <span class="option-name">Mix Color</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. LOGO PANEL -->
+                <div class="design-panel" id="logoPanel">
+                    <div class="section-title-row">
+                        <div class="section-title">Logo Library</div>
+                        <button class="view-all">View All</button>
+                    </div>
+                    <p class="section-subtitle">Add social, video, audio or custom logos</p>
+
+                    <div class="option-grid">
+                        <button class="option logo-option active" data-logo=""><span class="logo-symbol">QR</span><span class="option-name">None</span></button>
+                        <button class="option logo-option" data-logo="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg"><span class="logo-symbol youtube">▶</span><span class="option-name">YouTube</span></button>
+                        <button class="option logo-option" data-logo="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg"><span class="logo-symbol instagram">◎</span><span class="option-name">Instagram</span></button>
+                        <button class="option logo-option" data-logo="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"><span class="logo-symbol facebook">f</span><span class="option-name">Facebook</span></button>
+                        
+                        <button class="option logo-option" data-logo="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"><span class="logo-symbol whatsapp">☎</span><span class="option-name">WhatsApp</span></button>
+                        <button class="option logo-option" data-logo="https://upload.wikimedia.org/wikipedia/en/a/a9/TikTok_logo.svg"><span class="logo-symbol tiktok">♪</span><span class="option-name">TikTok</span></button>
+                        <button class="option logo-option" data-logo="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png"><span class="logo-symbol linkedin">in</span><span class="option-name">LinkedIn</span></button>
+                        <button class="option logo-option" data-logo="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"><span class="logo-symbol telegram">✈</span><span class="option-name">Telegram</span></button>
+
+                        <button class="option logo-option" data-logo="https://upload.wikimedia.org/wikipedia/commons/0/08/Pinterest-logo.png"><span class="logo-symbol pinterest">P</span><span class="option-name">Pinterest</span></button>
+                        <button class="option logo-option" data-logo="https://upload.wikimedia.org/wikipedia/en/c/c4/Snapchat_logo.svg"><span class="logo-symbol snapchat">👻</span><span class="option-name">Snapchat</span></button>
+                        <button class="option logo-option" data-logo="https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg"><span class="logo-symbol xlogo">X</span><span class="option-name">X</span></button>
+                        <button class="option logo-option" data-logo="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_alt_font_awesome.svg"><span class="logo-symbol discord">👾</span><span class="option-name">Discord</span></button>
+                    </div>
+
+                    <div class="upload-grid">
+                        <label class="upload-btn">
+                            <span class="upload-icon">▧</span>
+                            <strong>Custom Logo</strong>
+                            <small>Upload PNG/JPG</small>
+                            <input type="file" id="logoUploadInput" accept="image/*">
+                        </label>
+                        <div class="upload-btn" style="border:1px solid var(--border); border-style:solid;" id="removeLogoBtn">
+                            <span class="upload-icon" style="color:var(--muted)">␡</span>
+                            <strong>Remove</strong>
+                            <small>Clear Logo</small>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </main>
+
+    <!-- DOWNLOAD BAR -->
+    <div class="download-bar">
+        <div class="download-inner">
+            <button class="download-side">⎗</button>
+            <button class="download-btn" id="downloadBtn">
+                Download QR Code
+                <small>High Quality PNG Image</small>
+            </button>
+            <button class="download-side">↗</button>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+   JAVASCRIPT
+========================================================= -->
+<script>
+    // Initialize QR Code Styling Engine
+    const qrCode = new QRCodeStyling({
+        width: 300,
+        height: 300,
+        data: "https://example.com",
+        image: "",
+        dotsOptions: { color: "#050505", type: "square" },
+        cornersSquareOptions: { type: "square" },
+        cornersDotOptions: { type: "square" },
+        backgroundOptions: { color: "transparent" },
+        imageOptions: { crossOrigin: "anonymous", margin: 10 }
+    });
+
+    qrCode.append(document.getElementById("qrPreview"));
+
+    // --- Main Tab Switching ---
+    const websiteTab = document.getElementById("websiteTab");
+    const designTab = document.getElementById("designTab");
+    
+    websiteTab.addEventListener("click", () => {
+        websiteTab.classList.add("active");
+        designTab.classList.remove("active");
+        document.getElementById("websitePanel").classList.remove("hidden");
+        document.getElementById("quickPanel").classList.remove("hidden");
+        document.getElementById("historyPanel").classList.remove("hidden");
+        document.getElementById("designMobilePanel").classList.remove("hidden");
+        if (window.innerWidth < 760) document.getElementById("designStudio").classList.add("hidden");
+    });
+
+    designTab.addEventListener("click", () => {
+        designTab.classList.add("active");
+        websiteTab.classList.remove("active");
+        if (window.innerWidth < 760) {
+            document.getElementById("websitePanel").classList.add("hidden");
+            document.getElementById("quickPanel").classList.add("hidden");
+            document.getElementById("historyPanel").classList.add("hidden");
+            document.getElementById("designMobilePanel").classList.add("hidden");
+        }
+        document.getElementById("designStudio").classList.remove("hidden");
+    });
+
+    document.getElementById("openDesign").addEventListener("click", () => designTab.click());
+
+    // --- Update QR on URL Change ---
+    document.getElementById("generateBtn").addEventListener("click", () => {
+        const val = document.getElementById("urlInput").value;
+        if(val) qrCode.update({ data: val });
+    });
+
+    // --- Quick Create Buttons ---
+    document.querySelectorAll(".quick").forEach(btn => {
+        btn.addEventListener("click", () => {
+            let type = btn.getAttribute("data-type");
+            let newVal = "https://example.com";
+            switch(type) {
+                case 'url': newVal = "https://"; break;
+                case 'wifi': newVal = "WIFI:S:MyNetwork;T:WPA;P:MyPassword;;"; break;
+                case 'text': newVal = "Hello from QR Studio!"; break;
+                case 'email': newVal = "mailto:someone@example.com"; break;
+                case 'phone': newVal = "tel:+1234567890"; break;
+                case 'sms': newVal = "sms:+1234567890"; break;
+                case 'vcard': newVal = "BEGIN:VCARD\nVERSION:3.0\nFN:John Doe\nTEL:123456789\nEND:VCARD"; break;
+                case 'upi': newVal = "upi://pay?pa=your-upi-id@bank"; break;
+            }
+            document.getElementById("urlInput").value = newVal;
+            qrCode.update({ data: newVal });
+        });
+    });
+
+    // --- Design Sub-Tab Switching ---
+    const designSubTabs = document.querySelectorAll('.design-tab');
+    const designPanels = document.querySelectorAll('.design-panel');
+    designSubTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            designSubTabs.forEach(t => t.classList.remove('active'));
+            designPanels.forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(tab.getAttribute('data-design')).classList.add('active');
+        });
+    });
+
+    // --- OUTER FRAMES Logic ---
+    const qrFrameWrapper = document.getElementById("qrFrameWrapper");
+    document.querySelectorAll('.frame-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.frame-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const frameClass = btn.getAttribute('data-frame');
+            qrFrameWrapper.className = frameClass; // Update wrapper class
+        });
+    });
+
+    // --- Sticker Labels Logic ---
+    const scanLabel = document.getElementById("scanLabel");
+    function resetStickerStyles() {
+        scanLabel.style.background = '';
+        scanLabel.style.padding = '';
+        scanLabel.style.border = '';
+        scanLabel.style.boxShadow = '';
+    }
+
+    document.querySelectorAll('.sticker-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.sticker-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('customStickerText').value = ''; 
+            const labelText = btn.getAttribute('data-label');
+            const styleClass = btn.getAttribute('data-class');
+            resetStickerStyles();
+            scanLabel.innerText = labelText;
+            scanLabel.className = 'scan-label ' + styleClass;
+            scanLabel.style.display = 'block';
+        });
+    });
+
+    document.getElementById('customStickerText').addEventListener('input', (e) => {
+        resetStickerStyles();
+        if(e.target.value.trim() !== '') {
+            scanLabel.innerText = e.target.value;
+            scanLabel.style.display = 'block';
+        } else {
+            const activeBtn = document.querySelector('.sticker-option.active');
+            if(activeBtn) scanLabel.innerText = activeBtn.getAttribute('data-label');
+        }
+    });
+
+    document.getElementById('customStickerUpload').addEventListener('change', function(e) {
+        if(e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('customStickerText').value = ''; 
+                scanLabel.innerHTML = `<img src="${event.target.result}" style="height:28px; width:auto; border-radius:4px; display:block;">`;
+                scanLabel.style.display = 'block';
+                scanLabel.className = 'scan-label'; 
+                scanLabel.style.background = 'transparent';
+                scanLabel.style.padding = '0';
+                scanLabel.style.border = 'none';
+                scanLabel.style.boxShadow = 'none';
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+
+    // --- Color Logic ---
+    document.querySelectorAll('.color-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.color-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const dotColor = btn.getAttribute('data-color');
+            if(dotColor) {
+                document.getElementById('customColorDots').value = dotColor;
+                const updateObj = { dotsOptions: { color: dotColor } };
+                const activeEdge = document.querySelector('.edge-option.active');
+                if(activeEdge && !activeEdge.getAttribute('data-ecolor')) {
+                    updateObj.cornersSquareOptions = { color: dotColor };
+                    updateObj.cornersDotOptions = { color: dotColor };
+                }
+                qrCode.update(updateObj);
+            }
+        });
+    });
+
+    document.getElementById('applyColorsBtn').addEventListener('click', () => {
+        const dotColor = document.getElementById('customColorDots').value;
+        const bgColor = document.getElementById('customColorBg').value;
+        document.querySelectorAll('.color-option').forEach(b => b.classList.remove('active'));
+        const updateObj = { 
+            dotsOptions: { color: dotColor },
+            backgroundOptions: { color: bgColor }
+        };
+        const activeEdge = document.querySelector('.edge-option.active');
+        if(activeEdge && !activeEdge.getAttribute('data-ecolor')) {
+            updateObj.cornersSquareOptions = { color: dotColor };
+            updateObj.cornersDotOptions = { color: dotColor };
+        }
+        qrCode.update(updateObj);
+    });
+
+    // --- Shape Logic ---
+    document.querySelectorAll('.shape-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.shape-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const shape = btn.getAttribute('data-shape');
+            qrCode.update({ dotsOptions: { type: shape } });
+        });
+    });
+
+    // --- 9 EDGES Logic ---
+    document.querySelectorAll('.edge-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.edge-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const edgeType = btn.getAttribute('data-edge'); 
+            const dotType = btn.getAttribute('data-dot');   
+            const edgeColor = btn.getAttribute('data-ecolor'); 
+            const cornerSqObj = { type: edgeType };
+            const cornerDtObj = { type: dotType };
+
+            if(edgeColor) {
+                if(btn.querySelector('.e-mix-color')) {
+                    cornerSqObj.color = "#8B0000";
+                    cornerDtObj.color = "#D4AF37";
+                } else {
+                    cornerSqObj.color = edgeColor;
+                    cornerDtObj.color = edgeColor;
+                }
+            } else {
+                const currentDotColor = document.getElementById('customColorDots').value;
+                cornerSqObj.color = currentDotColor;
+                cornerDtObj.color = currentDotColor;
+            }
+
+            qrCode.update({ 
+                cornersSquareOptions: cornerSqObj,
+                cornersDotOptions: cornerDtObj
+            });
+        });
+    });
+
+    // --- Logo Logic ---
+    document.querySelectorAll('.logo-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.logo-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const logoUrl = btn.getAttribute('data-logo');
+            qrCode.update({ image: logoUrl });
+        });
+    });
+
+    document.getElementById('logoUploadInput').addEventListener('change', function(e) {
+        if(e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                qrCode.update({ image: event.target.result });
+                document.querySelectorAll('.logo-option').forEach(b => b.classList.remove('active'));
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+
+    document.getElementById('removeLogoBtn').addEventListener('click', () => {
+        qrCode.update({ image: "" });
+        document.querySelectorAll('.logo-option').forEach(b => b.classList.remove('active'));
+        document.querySelector('.logo-option[data-logo=""]').classList.add('active'); 
+    });
+
+    // --- Download ---
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+        qrCode.download({ name: "QR-Studio-Export", extension: "png" });
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 760) {
+            document.getElementById("designStudio").classList.remove("hidden");
+            document.getElementById("websitePanel").classList.remove("hidden");
+            document.getElementById("quickPanel").classList.remove("hidden");
+            document.getElementById("historyPanel").classList.remove("hidden");
+        } else {
+            if(designTab.classList.contains('active')){
+                document.getElementById("websitePanel").classList.add("hidden");
+            } else {
+                document.getElementById("designStudio").classList.add("hidden");
+            }
+        }
+    });
+</script>
+</body>
+</html>
