@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>QR Studio — Free QR Code Generator</title>
+  <meta name="description" content="Create beautiful QR codes for websites, WiFi, contacts, WhatsApp, UPI, email, SMS and more. No login required.">
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"></script>
+  <style>
+    :root{
+      --primary:#8B0000;
+      --primary-dark:#6f0000;
+      --gold:#D4AF37;
+      --ink:#F4F4F4;
+      --muted:#A8A8A8;
+      --line:#2a2a2a;
+      --soft:#111111;
+      --card:#0b0b0b;
+      --page:#050505;
+      --shadow:0 18px 50px rgba(0,0,0,.45);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--ink);
+      background:#0b0b0b;
+    }
+    button,input,textarea,select{font:inherit}
+    button{cursor:pointer}
+    a{text-decoration:none;color:inherit}
+    .topbar{
+      height:38px;background:#0b0b0b;border-bottom:1px solid #242424;
+      display:flex;align-items:center;justify-content:center;font-size:13px;color:#a9a9a9;
+    }
+    .topbar b{color:var(--gold)}
+    header{
+      height:78px;border-bottom:1px solid var(--line);background:#0b0b0b;
+      display:flex;align-items:center;position:sticky;top:0;z-index:20;
+    }
+    .nav{
+      width:min(1180px,92%);margin:auto;display:flex;align-items:center;justify-content:space-between;
+    }
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800}
+    .brandmark{
+      width:42px;height:42px;border:3px solid var(--primary);border-radius:11px;
+      display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:5px;
+    }
+    .brandmark i{border:3px solid var(--gold);border-radius:4px}
+    .brandtext{color:#F4F4F4;font-size:20px;letter-spacing:-.4px}
+    .brandtext small{display:block;font-size:10px;font-weight:600;color:#777;letter-spacing:1px}
+    .navlinks{display:flex;gap:26px;align-items:center;font-size:14px;color:#b7b7b7}
+    .navlinks a:hover{color:var(--gold)}
+    .btn{
+      border:0;border-radius:12px;padding:12px 18px;font-weight:750;
+      transition:.2s transform,.2s box-shadow,.2s background;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn-primary{background:var(--primary);color:#fff;box-shadow:0 8px 24px rgba(139,0,0,.32)}
+    .btn-light{background:#151515;color:#126e70}
+    .btn-outline{background:#0b0b0b;border:1px solid var(--line);color:#e7e7e7}
+    .hero{
+      background:radial-gradient(circle at 50% 0%,#180000 0%,#050505 42%,#050505 100%);
+      padding:56px 0 28px;text-align:center;
+    }
+    .pill{
+      display:inline-flex;align-items:center;gap:7px;background:#e8f7f7;color:#087f81;
+      border:1px solid #c9eeee;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:800;
+    }
+    h1{color:#F4F4F4;font-size:clamp(34px,5vw,56px);line-height:1.03;letter-spacing:-2.2px;margin:18px auto 14px;max-width:820px}
+    .hero p{max-width:720px;margin:0 auto;color:var(--muted);font-size:17px;line-height:1.6}
+    .hero-actions{display:flex;justify-content:center;gap:10px;margin-top:24px;flex-wrap:wrap}
+    .app{width:min(1180px,92%);margin:18px auto 70px}
+    .generator{
+      border:1px solid var(--line);border-radius:24px;background:#0b0b0b;box-shadow:var(--shadow);overflow:hidden;
+    }
+    .generator-head{
+      padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center
+    }
+    .steps{display:flex;gap:8px;align-items:center}
+    .step{font-size:13px;color:#8a9094;font-weight:700}
+    .step.active{color:var(--gold)}
+    .dot{width:6px;height:6px;background:#cbd1d4;border-radius:50%}
+    .generator-body{display:grid;grid-template-columns:1.08fr .92fr;min-height:650px}
+    .panel{padding:26px}
+    .left-panel{border-right:1px solid var(--line)}
+    .tabs{display:grid;grid-template-columns:1fr 1fr;background:#111111;border-radius:14px;padding:4px;margin-bottom:24px}
+    .tab{border:0;background:transparent;padding:13px;border-radius:11px;color:#b7b7b7;font-weight:750}
+    .tab.active{background:#0b0b0b;color:var(--gold);box-shadow:0 3px 12px rgba(0,0,0,.06)}
+    .label{display:block;font-size:14px;font-weight:750;margin:18px 0 8px}
+    .field,select,textarea{
+      width:100%;border:1px solid #dfe3e6;border-radius:13px;background:#0b0b0b;padding:14px 15px;
+      outline:none;color:#f4f4f4;transition:.2s border,.2s box-shadow;
+    }
+    .field:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(21,154,156,.10)}
+    textarea{min-height:100px;resize:vertical}
+    .type-grid{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:280px;overflow:auto;padding-right:2px;
+    }
+    .type{
+      border:1px solid var(--line);background:#0b0b0b;border-radius:12px;padding:10px 6px;
+      min-height:76px;color:#b7b7b7;font-size:11px;font-weight:700;text-align:center;
+    }
+    .type .ico{font-size:22px;display:block;margin-bottom:5px}
+    .type.active{border-color:var(--gold);background:#1a0d0d;color:var(--gold);box-shadow:inset 0 0 0 1px #54babc}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .design-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .colorbox{display:flex;align-items:center;gap:8px;border:1px solid #dfe3e6;border-radius:13px;padding:7px 10px}
+    input[type=color]{width:40px;height:36px;padding:0;border:0;background:transparent}
+    .range{width:100%}
+    .preview-panel{background:#0a0a0a;display:flex;flex-direction:column;align-items:center;padding:26px}
+    .preview-card{
+      width:100%;max-width:430px;background:#0b0b0b;border:1px solid var(--line);border-radius:20px;
+      padding:26px;box-shadow:0 12px 30px rgba(0,0,0,.06);text-align:center;
+    }
+    .preview-title{color:var(--gold);font-size:13px;color:#9d9d9d;font-weight:700;margin-bottom:15px}
+    #qrCanvas{min-height:300px;display:flex;align-items:center;justify-content:center}
+    #qrCanvas canvas,#qrCanvas svg{max-width:100%;height:auto!important}
+    .scan-note{font-size:12px;color:#9d9d9d;margin-top:13px}
+    .download-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+    .download-row .btn{width:100%}
+    .status{margin-top:14px;font-size:12px;color:#9d8585;min-height:18px}
+    .feature-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
+    .feature{padding:18px;border:1px solid var(--line);border-radius:16px;background:#fff}
+    .feature b{display:block;margin-bottom:6px}
+    .feature span{font-size:13px;color:var(--muted);line-height:1.45}
+    .section{padding:70px 0;border-top:1px solid #171717;background:#fbfcfc}
+    .section-inner{width:min(1100px,92%);margin:auto}
+    .section h2{text-align:center;color:#F4F4F4;font-size:34px;letter-spacing:-1px;margin:0 0 10px}
+    .section-lead{text-align:center;color:var(--muted);max-width:700px;margin:0 auto 35px;line-height:1.6}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{background:#0b0b0b;border:1px solid var(--line);border-radius:18px;padding:22px}
+    .card .big{font-size:30px;filter:saturate(1.1)}
+    .card h3{margin:10px 0 7px}.card p{margin:0;color:var(--muted);line-height:1.55;font-size:14px}
+    footer{padding:35px 0;border-top:1px solid var(--line)}
+    .footer-inner{width:min(1100px,92%);margin:auto;display:flex;justify-content:space-between;gap:20px;color:#888;font-size:13px}
+    .hidden{display:none!important}
+    .mobile-menu{display:none}
+    @media(max-width:900px){
+      .navlinks{display:none}.mobile-menu{display:block}
+      .generator-body{grid-template-columns:1fr}.left-panel{border-right:0;border-bottom:1px solid var(--line)}
+      .feature-strip{grid-template-columns:1fr 1fr}.cards{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:600px){
+      .topbar{font-size:11px}
+      header{height:68px}.brandtext{font-size:17px}
+      .hero{padding:36px 0 20px}.hero p{font-size:15px}
+      .app{width:94%;margin-bottom:40px}
+      .generator-head{padding:12px 14px}.panel{padding:16px}
+      .type-grid{grid-template-columns:repeat(3,1fr);max-height:300px}
+      .form-grid,.design-grid{grid-template-columns:1fr}
+      .feature-strip,.cards{grid-template-columns:1fr}
+      .preview-card{padding:18px}
+      .footer-inner{flex-direction:column}
+    }
+  
+    /* Premium dark cards / high-contrast text */
+    .feature,
+    .card,
+    .preview-card,
+    .generator,
+    .type,
+    .field,
+    select,
+    textarea,
+    .colorbox {
+      background:#0b0f14 !important;
+      color:#f4f4f4 !important;
+    }
+
+    .feature,
+    .card {
+      border-color:#202a34 !important;
+      box-shadow:0 10px 28px rgba(0,0,0,.28);
+    }
+
+    .feature b,
+    .card h3,
+    .card b,
+    .feature span,
+    .card p {
+      color:#f4f4f4 !important;
+    }
+
+    .feature span,
+    .card p {
+      color:#aeb8c2 !important;
+    }
+
+    .feature b,
+    .card h3 {
+      color:#d4af37 !important;
+    }
+
+    .section,
+    .section[style] {
+      background:#070a0e !important;
+      color:#f4f4f4 !important;
+    }
+
+    .section h2 {
+      color:#f4f4f4 !important;
+    }
+
+    .section-lead {
+      color:#aeb8c2 !important;
+    }
+
+    .type {
+      border-color:#202a34 !important;
+    }
+
+    .type.active {
+      background:#16090b !important;
+      border-color:#8b0000 !important;
+      color:#d4af37 !important;
+    }
+
+    .type:hover {
+      background:#101820 !important;
+      border-color:#4a5968 !important;
+    }
+
+    .tabs {
+      background:#0b0f14 !important;
+    }
+
+    .tab {
+      color:#aeb8c2 !important;
+    }
+
+    .tab.active {
+      background:#161c24 !important;
+      color:#d4af37 !important;
+    }
+
+    .preview-panel {
+      background:#080b10 !important;
+    }
+
+    .preview-card {
+      border-color:#252d37 !important;
+    }
+
+    .field::placeholder,
+    textarea::placeholder {
+      color:#687482 !important;
+      opacity:1;
+    }
+
+    select option {
+      background:#0b0f14;
+      color:#f4f4f4;
+    }
+
+    .label {
+      color:#d8dee5 !important;
+    }
+
+    .step {
+      color:#788593 !important;
+    }
+
+    .step.active {
+      color:#d4af37 !important;
+    }
+
+    footer {
+      background:#05070a !important;
+      color:#87919c !important;
+    }
+
+    footer strong {
+      color:#d4af37 !important;
+    }
+
+  
+    /* ================= CYBER AGENCY DESIGN SYSTEM ================= */
+    body{
+      background:
+        radial-gradient(circle at 15% 10%, rgba(139,0,0,.13), transparent 28%),
+        radial-gradient(circle at 85% 15%, rgba(212,175,55,.07), transparent 22%),
+        #050505 !important;
+      overflow-x:hidden;
+    }
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:-1;
+      opacity:.20;
+      background-image:
+        linear-gradient(rgba(212,175,55,.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(212,175,55,.055) 1px, transparent 1px);
+      background-size:48px 48px;
+      mask-image:linear-gradient(to bottom, black, transparent 78%);
+      animation:gridDrift 18s linear infinite;
+    }
+    @keyframes gridDrift{to{background-position:48px 48px}}
+    body::after{
+      content:"";
+      position:fixed;
+      width:220px;height:220px;
+      left:-90px;top:20%;
+      border:1px solid rgba(139,0,0,.30);
+      box-shadow:0 0 70px rgba(139,0,0,.15), inset 0 0 40px rgba(139,0,0,.08);
+      border-radius:50%;
+      pointer-events:none;
+      z-index:-1;
+      animation:orbMove 14s ease-in-out infinite alternate;
+    }
+    @keyframes orbMove{to{transform:translate(110vw,35vh) scale(1.8);opacity:.15}}
+
+    .topbar{
+      background:linear-gradient(90deg,#070707,#120606,#070707) !important;
+      border-bottom:1px solid #2b1515 !important;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:10px !important;
+      color:#9fa8b2 !important;
+    }
+    header{
+      background:rgba(5,5,5,.86) !important;
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid #191919 !important;
+    }
+    .nav{
+      position:relative;
+    }
+    .nav::after{
+      content:"";
+      position:absolute;
+      left:0;right:0;bottom:-1px;height:1px;
+      background:linear-gradient(90deg,transparent,#8B0000,#D4AF37,transparent);
+      opacity:.7;
+    }
+    .brandmark{
+      border-color:#8B0000 !important;
+      box-shadow:0 0 18px rgba(139,0,0,.28), inset 0 0 12px rgba(212,175,55,.08);
+      animation:brandPulse 3s ease-in-out infinite;
+    }
+    .brandmark i{border-color:#D4AF37 !important}
+    @keyframes brandPulse{50%{box-shadow:0 0 28px rgba(139,0,0,.45), inset 0 0 16px rgba(212,175,55,.12)}}
+
+    .hero{
+      position:relative;
+      isolation:isolate;
+      background:
+        radial-gradient(circle at 50% 10%,rgba(139,0,0,.22),transparent 34%),
+        linear-gradient(180deg,#080808,#050505) !important;
+      border-bottom:1px solid #1b1b1b;
+    }
+    .hero::before{
+      content:"SECURE • LOCAL • PRIVATE • ZERO LOGIN";
+      display:block;
+      color:#4e555d;
+      font:600 9px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+      letter-spacing:.30em;
+      margin-bottom:16px;
+      animation:blinkSoft 2.8s infinite;
+    }
+    @keyframes blinkSoft{50%{opacity:.45}}
+    .hero h1{
+      text-shadow:0 0 35px rgba(139,0,0,.22);
+    }
+    .pill{
+      border-color:#4b2020 !important;
+      background:rgba(139,0,0,.10) !important;
+      color:#D4AF37 !important;
+      box-shadow:inset 0 0 20px rgba(139,0,0,.08);
+    }
+    .btn-primary{
+      background:linear-gradient(135deg,#8B0000,#5e0000) !important;
+      border:1px solid #a40000 !important;
+      box-shadow:0 0 24px rgba(139,0,0,.22) !important;
+    }
+    .btn-primary:hover{
+      transform:translateY(-2px);
+      box-shadow:0 0 35px rgba(139,0,0,.42) !important;
+    }
+    .btn-outline{
+      border-color:#393939 !important;
+      color:#D4AF37 !important;
+      background:#090909 !important;
+    }
+
+    .generator{
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(145deg,#080808,#0b0e12) !important;
+      border-color:#252525 !important;
+      box-shadow:0 25px 80px rgba(0,0,0,.55), 0 0 50px rgba(139,0,0,.05);
+    }
+    .generator::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:linear-gradient(115deg,transparent 0 42%,rgba(212,175,55,.035) 50%,transparent 58%);
+      transform:translateX(-100%);
+      animation:scanSheen 8s linear infinite;
+    }
+    @keyframes scanSheen{to{transform:translateX(100%)}}
+    .tabs{
+      background:#080b0f !important;
+      border-bottom-color:#222 !important;
+    }
+    .tab{
+      color:#7d8791 !important;
+    }
+    .tab.active{
+      color:#D4AF37 !important;
+      border-bottom-color:#8B0000 !important;
+      text-shadow:0 0 15px rgba(212,175,55,.18);
+    }
+    .preview-panel{
+      background:
+        radial-gradient(circle at 50% 45%,rgba(139,0,0,.10),transparent 48%),
+        #06080b !important;
+      position:relative;
+    }
+    .preview-panel::before{
+      content:"";
+      position:absolute;
+      inset:12px;
+      border:1px solid rgba(212,175,55,.08);
+      pointer-events:none;
+      clip-path:polygon(0 0,28px 0,28px 1px,calc(100% - 28px) 1px,calc(100% - 28px) 0,100% 0,100% 28px,calc(100% - 1px) 28px,calc(100% - 1px) calc(100% - 28px),100% calc(100% - 28px),100% 100%,calc(100% - 28px) 100%,calc(100% - 28px) calc(100% - 1px),28px calc(100% - 1px),28px 100%,0 100%,0 calc(100% - 28px),1px calc(100% - 28px),1px 28px,0 28px);
+    }
+    .preview-card{
+      background:rgba(7,9,12,.88) !important;
+      border-color:#252b31 !important;
+      box-shadow:inset 0 0 50px rgba(139,0,0,.035);
+    }
+    #qrCanvas{
+      position:relative;
+      min-height:300px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+    #qrCanvas::before{
+      content:"";
+      position:absolute;
+      width:82%;height:82%;
+      border:1px solid rgba(139,0,0,.20);
+      box-shadow:0 0 60px rgba(139,0,0,.09);
+      pointer-events:none;
+    }
+    .cyber-qr-wrap{
+      position:relative;
+      display:inline-flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      padding:14px;
+      border:1px solid rgba(212,175,55,.20);
+      background:#030303;
+      box-shadow:0 0 40px rgba(139,0,0,.16), inset 0 0 20px rgba(212,175,55,.03);
+    }
+    .cyber-qr-wrap.glow{
+      box-shadow:0 0 55px rgba(139,0,0,.30), 0 0 12px rgba(212,175,55,.12), inset 0 0 25px rgba(139,0,0,.05);
+    }
+    .cyber-qr-wrap .qr-scanline{
+      position:absolute;left:5%;right:5%;top:8%;
+      height:2px;background:linear-gradient(90deg,transparent,#D4AF37,#8B0000,transparent);
+      box-shadow:0 0 10px rgba(212,175,55,.65);
+      pointer-events:none;
+      animation:qrScan 2.8s ease-in-out infinite;
+    }
+    .cyber-qr-wrap .sticker-text{
+      font:700 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;
+      letter-spacing:.20em;
+      color:#D4AF37;
+      text-transform:uppercase;
+    }
+    @keyframes qrScan{
+      0%,100%{transform:translateY(0);opacity:.25}
+      50%{transform:translateY(235px);opacity:1}
+    }
+
+    /* Design lab */
+    .design-lab{
+      margin-top:0;
+      border:1px solid #1f2730;
+      border-radius:18px;
+      overflow:hidden;
+      background:linear-gradient(180deg,#080b0f,#06080b);
+      box-shadow:inset 0 1px rgba(255,255,255,.02);
+    }
+    .design-tabs{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      background:#07090c;
+      border-bottom:1px solid #1f252c;
+    }
+    .design-tab{
+      appearance:none;
+      border:0;
+      border-right:1px solid #1a2026;
+      background:transparent;
+      color:#66717d;
+      padding:16px 8px 13px;
+      font:700 11px/1.1 ui-sans-serif,system-ui,sans-serif;
+      letter-spacing:.09em;
+      cursor:pointer;
+      position:relative;
+      transition:.2s ease;
+    }
+    .design-tab:last-child{border-right:0}
+    .design-tab span{display:block;margin-top:6px;font-size:9px}
+    .design-tab:hover{color:#c7d0d8;background:#0b1015}
+    .design-tab.active{
+      color:#D4AF37;
+      background:linear-gradient(180deg,#11090a,#090b0e);
+    }
+    .design-tab.active::after{
+      content:"";
+      position:absolute;
+      left:16%;right:16%;bottom:0;height:2px;
+      background:linear-gradient(90deg,#8B0000,#D4AF37,#8B0000);
+      box-shadow:0 0 12px rgba(212,175,55,.35);
+    }
+    .design-panel{display:none;padding:18px}
+    .design-panel.active{display:block;animation:panelIn .22s ease}
+    @keyframes panelIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+    .design-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .design-heading small{font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:#707b87;letter-spacing:.20em}
+    .design-heading h3{margin:7px 0 0;color:#F4F4F4;font-size:18px}
+    .live-chip{
+      font:700 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+      letter-spacing:.12em;color:#D4AF37;border:1px solid #4b3020;
+      padding:6px 8px;border-radius:999px;background:#120d08;
+    }
+    .preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .preset-card,.shape-card,.edge-card{
+      border:1px solid #202830;border-radius:12px;background:#0a0e13;color:#a8b0b8;
+      padding:10px;cursor:pointer;transition:.2s ease;text-align:center;
+    }
+    .preset-card:hover,.shape-card:hover,.edge-card:hover{
+      transform:translateY(-2px);border-color:#4c5965;background:#0e141a;
+    }
+    .preset-card.active,.shape-card.active,.edge-card.active{
+      border-color:#8B0000;box-shadow:0 0 18px rgba(139,0,0,.14),inset 0 0 20px rgba(212,175,55,.025);
+      color:#D4AF37;
+    }
+    .preset-card b,.shape-card b,.edge-card b{display:block;margin-top:7px;font-size:10px}
+    .sticker-preview{
+      height:70px;border:1px solid #2a333c;background:#050607;border-radius:8px;
+      display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;
+      font:800 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:#f4f4f4;
+    }
+    .sticker-preview i{font-style:normal;font-size:20px;letter-spacing:.1em}
+    .sticker-preview em{font-style:normal;font-size:7px;letter-spacing:.12em;color:#D4AF37}
+    .classic-preview{border-color:#8B0000}
+    .open-preview{border-top:2px solid #D4AF37}
+    .camera-preview{border-left:2px solid #8B0000;border-right:2px solid #8B0000}
+    .connect-preview{box-shadow:inset 0 -3px #8B0000}
+    .minimal-preview{background:linear-gradient(180deg,#050505,#0c0c0c)}
+    .plain-preview{font-size:24px;color:#555}
+    .color-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+    .color-preset{
+      height:56px;border:1px solid #27303a;border-radius:11px;cursor:pointer;position:relative;
+      background:#F4F4F4;transition:.2s ease;overflow:hidden;
+    }
+    .color-preset::after{
+      content:"";position:absolute;inset:9px;border:1px solid rgba(255,255,255,.18);border-radius:7px;
+      background:var(--swatch,#111);
+    }
+    .color-preset.rainbow-preset::after{
+      background:linear-gradient(135deg,#8B0000 0 38%,#D4AF37 38% 60%,#050505 60%);
+    }
+    .color-preset[data-fg="#F4F4F4"]::after{background:#F4F4F4}
+    .color-preset[data-fg="#D4AF37"]::after{background:#D4AF37}
+    .color-preset[data-fg="#8B0000"]::after{background:#8B0000}
+    .color-preset[data-fg="#22D3EE"]::after{background:#22D3EE}
+    .color-preset[data-fg="#7C3AED"]::after{background:#7C3AED}
+    .color-preset[data-fg="#39FF88"]::after{background:#39FF88}
+    .color-preset[data-fg="#FF5B5B"]::after{background:#FF5B5B}
+    .color-preset.active{border-color:#D4AF37;box-shadow:0 0 15px rgba(212,175,55,.15)}
+    .glow-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:15px}
+    .toggle{display:flex;align-items:center;gap:8px;color:#9aa5b0;font-size:11px;cursor:pointer}
+    .toggle input{display:none}
+    .toggle span{width:30px;height:16px;border-radius:20px;background:#242c34;position:relative;border:1px solid #38434d}
+    .toggle span::after{content:"";position:absolute;width:10px;height:10px;border-radius:50%;left:2px;top:2px;background:#68737e;transition:.2s}
+    .toggle input:checked+span{background:#3a0d0d;border-color:#8B0000}
+    .toggle input:checked+span::after{left:16px;background:#D4AF37;box-shadow:0 0 8px rgba(212,175,55,.55)}
+    .shape-section{margin-bottom:20px}
+    .shape-title{font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:#707b87;letter-spacing:.18em;margin-bottom:10px}
+    .shape-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .shape-card,.edge-card{min-height:88px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .edge-card{min-height:80px}
+    .shape-icon,.edge-icon{width:42px;height:42px;display:block;position:relative}
+    .body-square{background:repeating-linear-gradient(0deg,#88929c 0 5px,transparent 5px 9px),repeating-linear-gradient(90deg,#88929c 0 5px,transparent 5px 9px);clip-path:inset(4px)}
+    .body-dots{background:radial-gradient(circle,#88929c 0 3px,transparent 3.5px);background-size:10px 10px}
+    .body-rounded{background:radial-gradient(circle at 50% 50%,#88929c 0 5px,transparent 5.5px);background-size:12px 12px}
+    .body-soft{background:radial-gradient(ellipse,#88929c 0 5px,transparent 5.5px);background-size:12px 10px}
+    .edge-square{border:6px solid #88929c}
+    .edge-dot{border:6px solid #88929c;border-radius:50%}
+    .edge-round{border:6px solid #88929c;border-radius:12px}
+    .logo-drop{
+      border:1px dashed #46515c;border-radius:14px;padding:20px 12px;text-align:center;
+      background:radial-gradient(circle at 50% 0,rgba(139,0,0,.11),transparent 55%),#080c10;
+      margin-bottom:15px;
+    }
+    .logo-orbit{
+      width:48px;height:48px;border:1px solid #8B0000;border-radius:50%;display:grid;place-items:center;
+      margin:0 auto 9px;color:#D4AF37;font-size:22px;box-shadow:0 0 25px rgba(139,0,0,.18);
+      animation:orbitPulse 2.5s ease-in-out infinite;
+    }
+    @keyframes orbitPulse{50%{transform:scale(1.06);box-shadow:0 0 35px rgba(139,0,0,.34)}}
+    .logo-drop strong{display:block;color:#f4f4f4;font-size:12px;letter-spacing:.08em}
+    .logo-drop>span{display:block;color:#68737e;font-size:10px;margin:6px 0 12px}
+    .upload-btn{
+      display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;border:1px solid #6e1717;
+      border-radius:9px;background:#170707;color:#D4AF37;font-size:10px;font-weight:800;cursor:pointer;
+    }
+    .upload-btn input{display:none}
+    .logo-safe{
+      margin-top:13px;padding:10px 12px;border-radius:9px;border:1px solid #263c30;background:#08100c;
+      color:#91a89a;font-size:10px
+    }
+    .logo-safe span{color:#39FF88;margin-right:6px}
+    .mini-note{color:#68737e;font-size:10px;line-height:1.5;margin-top:7px}
+    .section{
+      position:relative;
+    }
+    .feature{
+      background:linear-gradient(145deg,#0a0e13,#080b0f) !important;
+      border-color:#202a34 !important;
+      transition:.25s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .feature::before{
+      content:"";position:absolute;left:0;top:0;width:2px;height:100%;
+      background:linear-gradient(#8B0000,#D4AF37,transparent);
+      opacity:.75;
+    }
+    .feature:hover{transform:translateY(-5px);border-color:#3a4651 !important;box-shadow:0 18px 40px rgba(0,0,0,.35),0 0 25px rgba(139,0,0,.07)}
+    .card{
+      background:linear-gradient(145deg,#0a0e13,#07090c) !important;
+      border-color:#202a34 !important;
+      position:relative;overflow:hidden;transition:.25s ease;
+    }
+    .card:hover{transform:translateY(-5px);border-color:#49302b !important;box-shadow:0 20px 45px rgba(0,0,0,.35)}
+    .card .big{filter:drop-shadow(0 0 10px rgba(212,175,55,.16))}
+    @media(max-width:700px){
+      .preset-grid{grid-template-columns:repeat(2,1fr)}
+      .shape-grid{grid-template-columns:repeat(3,1fr)}
+      .color-presets{grid-template-columns:repeat(4,1fr)}
+      .design-tab{font-size:9px;padding:13px 3px}
+      .design-tab span{font-size:8px}
+    }
+
+  
+/* =========================================================
+   FINAL RESPONSIVE PATCH — MOBILE / TABLET / DESKTOP
+   ========================================================= */
+*,
+*::before,
+*::after{box-sizing:border-box}
+
+html{width:100%;min-width:320px;scroll-behavior:smooth}
+body{width:100%;min-width:320px;overflow-x:hidden}
+img,svg,canvas,video{max-width:100%;height:auto}
+button,input,select,textarea{max-width:100%;font:inherit}
+button{touch-action:manipulation}
+
+main,.page,.container,.shell,.wrap{
+  width:100%;
+  max-width:100%;
+}
+
+.container,.shell,.wrap{
+  padding-left:clamp(16px,4vw,42px);
+  padding-right:clamp(16px,4vw,42px);
+}
+
+header .nav,
+.nav{
+  width:min(1400px,100%);
+  margin-inline:auto;
+  padding-inline:clamp(14px,3vw,36px);
+}
+
+.hero{
+  padding-left:clamp(16px,4vw,42px)!important;
+  padding-right:clamp(16px,4vw,42px)!important;
+}
+.hero > *{
+  max-width:1180px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.generator{
+  width:min(1180px,100%);
+  margin-inline:auto;
+}
+
+.generator-layout,
+.generator-grid,
+.main-grid,
+.content-grid{
+  width:100%;
+  min-width:0;
+}
+
+.preview-panel,
+.preview-card,
+.design-lab,
+.design-panel{
+  min-width:0;
+  max-width:100%;
+}
+
+.preview-card{
+  overflow:hidden;
+}
+
+#qrCanvas{
+  width:100%;
+  min-width:0;
+  min-height:clamp(260px,38vw,440px);
+  padding:clamp(12px,3vw,28px);
+  overflow:hidden;
+}
+
+.cyber-qr-wrap{
+  width:min(100%,520px);
+  max-width:100%;
+  overflow:hidden;
+}
+
+.cyber-qr-wrap > div:first-child{
+  width:min(100%,460px);
+  max-width:100%;
+}
+
+.cyber-qr-wrap canvas,
+.cyber-qr-wrap svg{
+  display:block;
+  max-width:100%!important;
+  width:auto!important;
+  height:auto!important;
+}
+
+.design-tabs{
+  width:100%;
+}
+
+.design-tab{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.design-panel{
+  padding:clamp(14px,2.5vw,22px);
+}
+
+.preset-grid,
+.shape-grid{
+  width:100%;
+}
+
+.field,select,input[type="text"],input[type="url"],input[type="number"]{
+  width:100%;
+  min-height:46px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.color-presets{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+
+.logo-drop{
+  width:100%;
+}
+
+.features-grid,.feature-grid,.cards-grid,.steps-grid{
+  width:100%;
+}
+
+section{
+  min-width:0;
+}
+
+@media (min-width: 1200px){
+  .generator{
+    border-radius:24px;
+  }
+  .generator-layout{
+    grid-template-columns:minmax(0,1fr) minmax(360px,460px);
+  }
+  .preview-panel{
+    position:sticky;
+    top:86px;
+    align-self:start;
+  }
+  .preset-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .shape-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+@media (min-width: 769px) and (max-width:1199px){
+  .generator-layout{
+    grid-template-columns:minmax(0,1fr) minmax(320px,42%);
+  }
+  .preview-panel{position:relative}
+  .preset-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .shape-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+@media (max-width: 768px){
+  body{font-size:15px}
+
+  header .nav{
+    min-height:64px;
+  }
+
+  .hero{
+    padding-top:clamp(28px,7vw,54px)!important;
+    padding-bottom:clamp(28px,7vw,54px)!important;
+  }
+
+  .hero h1{
+    font-size:clamp(30px,8vw,52px)!important;
+    line-height:1.06!important;
+  }
+
+  .hero p{
+    font-size:14px!important;
+    line-height:1.65!important;
+  }
+
+  .generator{
+    border-radius:18px;
+  }
+
+  .generator-layout{
+    display:flex!important;
+    flex-direction:column!important;
+  }
+
+  .preview-panel{
+    order:-1;
+    width:100%;
+  }
+
+  .preview-card{
+    width:100%;
+  }
+
+  #qrCanvas{
+    min-height:300px;
+  }
+
+  .design-tabs{
+    position:sticky;
+    top:0;
+    z-index:5;
+  }
+
+  .design-tab{
+    padding:13px 4px 12px;
+    letter-spacing:.03em;
+    font-size:9px;
+  }
+
+  .design-tab span{
+    font-size:7px;
+    margin-top:5px;
+  }
+
+  .design-heading h3{
+    font-size:16px;
+  }
+
+  .preset-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .shape-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .color-presets{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .color-preset{height:52px}
+
+  .form-grid{
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+
+  .glow-row{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:12px;
+  }
+
+  .preview-actions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+
+  .preview-actions > *{
+    width:100%!important;
+  }
+
+  .features-grid,.feature-grid,.cards-grid,.steps-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  .section{
+    padding-top:54px!important;
+    padding-bottom:54px!important;
+  }
+
+  footer .footer-grid{
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media (max-width: 520px){
+  .container,.shell,.wrap{
+    padding-left:14px;
+    padding-right:14px;
+  }
+
+  header .nav{
+    padding-inline:14px;
+  }
+
+  .hero{
+    padding-left:14px!important;
+    padding-right:14px!important;
+  }
+
+  .generator{
+    border-radius:15px;
+  }
+
+  .tabs{
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar{display:none}
+
+  .design-tabs{
+    grid-template-columns:repeat(4,minmax(72px,1fr));
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .design-tabs::-webkit-scrollbar{display:none}
+
+  .design-tab{
+    white-space:nowrap;
+  }
+
+  #qrCanvas{
+    min-height:260px;
+    padding:10px;
+  }
+
+  .cyber-qr-wrap{
+    padding:10px;
+  }
+
+  .cyber-qr-wrap .sticker-text{
+    font-size:8px;
+    letter-spacing:.14em;
+  }
+
+  .preset-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .shape-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .color-presets{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:7px;
+  }
+
+  .color-preset{
+    height:46px;
+  }
+
+  .sticker-preview{
+    height:62px;
+  }
+
+  .design-panel{
+    padding:13px;
+  }
+
+  .logo-drop{
+    padding:17px 10px;
+  }
+
+  .preview-actions{
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media (max-width: 380px){
+  .design-tab{
+    font-size:8px;
+  }
+
+  .design-tab span{
+    font-size:6.5px;
+  }
+
+  .color-presets{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .preset-grid,
+  .shape-grid{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .hero h1{
+    font-size:29px!important;
+  }
+}
+
+/* prevent accidental horizontal overflow from decorative elements */
+body > *{
+  max-width:100vw;
+}
+
+</style>
+</head>
+<body>
+  <div class="topbar">◆ <b>100% FREE STATIC QR CODES</b> · NO LOGIN REQUIRED · NO WATERMARK</div>
+
+  <header>
+    <nav class="nav">
+      <a class="brand" href="#">
+        <span class="brandmark"><i></i><i></i><i></i><i></i></span>
+        <span class="brandtext">QR STUDIO<small>CREATE QR CODES FOR FREE</small></span>
+      </a>
+      <div class="navlinks">
+        <a href="#generator">Generator</a>
+        <a href="#features">Features</a>
+        <a href="#types">QR Types</a>
+        <button class="btn btn-primary" onclick="document.getElementById('generator').scrollIntoView()">Create QR</button>
+      </div>
+      <button class="btn btn-light mobile-menu" onclick="document.getElementById('generator').scrollIntoView()">Create QR</button>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <span class="pill">⚡ Instant QR generation</span>
+    <h1>Free QR Code Generator Online</h1>
+    <p>Create beautiful, high-quality QR codes for websites, WiFi, contacts, WhatsApp, UPI, email, SMS and more — directly in your browser.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="document.getElementById('generator').scrollIntoView()">Create QR Code</button>
+      <button class="btn btn-outline" onclick="document.getElementById('features').scrollIntoView()">Explore Features</button>
+    </div>
+  </section>
+
+  <main class="app" id="generator">
+    <div class="generator">
+      <div class="generator-head">
+        <div><strong>QR Code Generator</strong><div style="font-size:12px;color:#8a9094;margin-top:3px">Create, customize and download</div></div>
+        <div class="steps"><span class="step active">1 Content</span><span class="dot"></span><span class="step">2 Design</span><span class="dot"></span><span class="step">3 Download</span></div>
+      </div>
+
+      <div class="generator-body">
+        <section class="panel left-panel">
+          <div class="tabs">
+            <button class="tab active" id="contentTab">Add Content</button>
+            <button class="tab" id="designTab">Design QR Code</button>
+          </div>
+
+          <div id="contentPane">
+            <label class="label">Choose QR Code type</label>
+            <div class="type-grid" id="typeGrid"></div>
+            <div id="dynamicForm"></div>
+          </div>
+
+          <div id="designPane" class="hidden">
+            <div class="design-lab">
+              <div class="design-tabs" role="tablist" aria-label="QR design controls">
+                <button class="design-tab active" data-design-panel="stickerPanel">◌ <span>STICKER</span></button>
+                <button class="design-tab" data-design-panel="colorPanel">◉ <span>COLOR</span></button>
+                <button class="design-tab" data-design-panel="shapePanel">◇ <span>SHAPES</span></button>
+                <button class="design-tab" data-design-panel="logoPanel">⌾ <span>LOGO</span></button>
+              </div>
+
+              <div class="design-panel active" id="stickerPanel">
+                <div class="design-heading">
+                  <div>
+                    <small>FRAME STYLE</small>
+                    <h3>Choose your QR sticker</h3>
+                  </div>
+                  <span class="live-chip">LIVE</span>
+                </div>
+                <div class="preset-grid sticker-grid">
+                  <button class="preset-card sticker-preset active" data-sticker="" data-frame="none">
+                    <span class="sticker-preview plain-preview">QR</span><b>None</b>
+                  </button>
+                  <button class="preset-card sticker-preset" data-sticker="SCAN ME" data-frame="classic">
+                    <span class="sticker-preview classic-preview"><i>QR</i><em>SCAN ME</em></span><b>Classic</b>
+                  </button>
+                  <button class="preset-card sticker-preset" data-sticker="SCAN TO OPEN" data-frame="open">
+                    <span class="sticker-preview open-preview"><i>QR</i><em>SCAN TO OPEN</em></span><b>Open</b>
+                  </button>
+                  <button class="preset-card sticker-preset" data-sticker="POINT CAMERA HERE" data-frame="camera">
+                    <span class="sticker-preview camera-preview"><i>QR</i><em>POINT CAMERA</em></span><b>Camera</b>
+                  </button>
+                  <button class="preset-card sticker-preset" data-sticker="SCAN TO CONNECT" data-frame="connect">
+                    <span class="sticker-preview connect-preview"><i>QR</i><em>CONNECT</em></span><b>Connect</b>
+                  </button>
+                  <button class="preset-card sticker-preset" data-sticker="SCAN ME" data-frame="minimal">
+                    <span class="sticker-preview minimal-preview"><i>QR</i><em>SCAN ME</em></span><b>Minimal</b>
+                  </button>
+                </div>
+                <label class="label">Custom sticker text</label>
+                <input class="field" id="frameText" value="SCAN ME" maxlength="28" placeholder="SCAN ME">
+                <div class="mini-note">Sticker text is displayed as a premium frame around the live QR preview.</div>
+              </div>
+
+              <div class="design-panel" id="colorPanel">
+                <div class="design-heading">
+                  <div>
+                    <small>COLOR SYSTEM</small>
+                    <h3>Cyber palette</h3>
+                  </div>
+                  <span class="live-chip">LIVE</span>
+                </div>
+                <div class="color-presets">
+                  <button class="color-preset rainbow-preset" data-fg="#8B0000" data-bg="#050505" title="Crimson Gold"></button>
+                  <button class="color-preset active" data-fg="#F4F4F4" data-bg="#050505" title="Ice on Black"></button>
+                  <button class="color-preset" data-fg="#D4AF37" data-bg="#050505" title="Gold on Black"></button>
+                  <button class="color-preset" data-fg="#8B0000" data-bg="#050505" title="Crimson on Black"></button>
+                  <button class="color-preset" data-fg="#22D3EE" data-bg="#050B12" title="Cyber Cyan"></button>
+                  <button class="color-preset" data-fg="#7C3AED" data-bg="#07050F" title="Cyber Violet"></button>
+                  <button class="color-preset" data-fg="#39FF88" data-bg="#030A06" title="Neon Green"></button>
+                  <button class="color-preset" data-fg="#FF5B5B" data-bg="#0D0505" title="Alert Red"></button>
+                </div>
+                <div class="form-grid">
+                  <div>
+                    <label class="label">QR / Foreground</label>
+                    <div class="colorbox"><input type="color" id="fgColor" value="#F4F4F4"><span id="fgText">#F4F4F4</span></div>
+                  </div>
+                  <div>
+                    <label class="label">Background</label>
+                    <div class="colorbox"><input type="color" id="bgColor" value="#050505"><span id="bgText">#050505</span></div>
+                  </div>
+                </div>
+                <div class="glow-row">
+                  <label class="toggle"><input id="glowToggle" type="checkbox" checked><span></span> Cyber glow</label>
+                  <label class="toggle"><input id="scanToggle" type="checkbox" checked><span></span> Scan animation</label>
+                </div>
+              </div>
+
+              <div class="design-panel" id="shapePanel">
+                <div class="design-heading">
+                  <div>
+                    <small>GEOMETRY ENGINE</small>
+                    <h3>Body & edge shapes</h3>
+                  </div>
+                  <span class="live-chip">LIVE</span>
+                </div>
+                <div class="shape-section">
+                  <div class="shape-title">BODY TYPE</div>
+                  <div class="shape-grid">
+                    <button class="shape-card active" data-dot="square"><span class="shape-icon body-square"></span><b>Square</b></button>
+                    <button class="shape-card" data-dot="dots"><span class="shape-icon body-dots"></span><b>Dots</b></button>
+                    <button class="shape-card" data-dot="rounded"><span class="shape-icon body-rounded"></span><b>Rounded</b></button>
+                    <button class="shape-card" data-dot="classy-rounded"><span class="shape-icon body-soft"></span><b>Soft</b></button>
+                  </div>
+                </div>
+                <div class="shape-section">
+                  <div class="shape-title">EDGES</div>
+                  <div class="shape-grid">
+                    <button class="edge-card active" data-corner="square"><span class="edge-icon edge-square"></span><b>Square</b></button>
+                    <button class="edge-card" data-corner="dot"><span class="edge-icon edge-dot"></span><b>Dot</b></button>
+                    <button class="edge-card" data-corner="extra-rounded"><span class="edge-icon edge-round"></span><b>Round</b></button>
+                  </div>
+                </div>
+                <div class="form-grid">
+                  <div>
+                    <label class="label">QR Size</label>
+                    <input class="range" id="qrSize" type="range" min="220" max="700" value="360">
+                  </div>
+                  <div>
+                    <label class="label">Margin</label>
+                    <input class="field" id="margin" type="number" min="0" max="50" value="10">
+                  </div>
+                </div>
+                <label class="label">Error correction</label>
+                <select id="ecLevel">
+                  <option value="L">Low</option>
+                  <option value="M" selected>Medium</option>
+                  <option value="Q">Quartile</option>
+                  <option value="H">High — best for logos</option>
+                </select>
+              </div>
+
+              <div class="design-panel" id="logoPanel">
+                <div class="design-heading">
+                  <div>
+                    <small>BRAND IDENTITY</small>
+                    <h3>Put your logo inside the QR</h3>
+                  </div>
+                  <span class="live-chip">LOCAL</span>
+                </div>
+                <div class="logo-drop" id="logoDrop">
+                  <div class="logo-orbit">⌾</div>
+                  <strong>UPLOAD LOGO</strong>
+                  <span>PNG · JPG · WEBP · SVG · max 2 MB</span>
+                  <label class="upload-btn">Choose file
+                    <input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+                  </label>
+                </div>
+                <label class="label">Or use Logo URL</label>
+                <input class="field" id="logoUrl" placeholder="https://example.com/logo.png">
+                <div class="form-grid">
+                  <div>
+                    <label class="label">Logo size</label>
+                    <input class="range" id="logoSize" type="range" min="10" max="40" value="22">
+                  </div>
+                  <div>
+                    <label class="label">Quiet zone</label>
+                    <input class="range" id="logoMargin" type="range" min="0" max="18" value="8">
+                  </div>
+                </div>
+                <div class="logo-safe"><span>✓</span> High error correction is recommended when a logo is used.</div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <aside class="preview-panel">
+          <div class="preview-card">
+            <div class="preview-title">◉ LIVE PREVIEW <span style="float:right;font:700 8px ui-monospace;color:#59646f;letter-spacing:.15em">QR-CORE / ONLINE</span></div>
+            <div id="qrCanvas" aria-live="polite"></div>
+            <div class="scan-note">✓ Test the QR code before printing or sharing</div>
+            <div class="download-row">
+              <button class="btn btn-primary" id="downloadPng">↓ Download PNG</button>
+              <button class="btn btn-outline" id="downloadSvg">↓ Download SVG</button>
+            </div>
+            <div class="download-row">
+              <button class="btn btn-outline" id="copyData">Copy QR Data</button>
+              <button class="btn btn-light" id="resetBtn">Reset</button>
+            </div>
+            <div class="status" id="status">Ready — enter your content.</div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <div class="feature-strip">
+      <div class="feature"><b>🔓 No Login</b><span>Generate static QR codes instantly without creating an account.</span></div>
+      <div class="feature"><b>🎨 Custom Design</b><span>Colors, patterns, corners, logo and size controls.</span></div>
+      <div class="feature"><b>⚡ Live Preview</b><span>Your QR updates automatically while you edit the content.</span></div>
+      <div class="feature"><b>📥 High Quality</b><span>Download PNG or SVG for digital and print use.</span></div>
+    </div>
+  </main>
+
+  <section class="section" id="features">
+    <div class="section-inner">
+      <h2>Everything you need to create QR codes</h2>
+      <p class="section-lead">A browser-first QR studio designed to make common QR formats fast and simple, while keeping the advanced design controls close at hand.</p>
+      <div class="cards">
+        <article class="card"><div class="big">🌐</div><h3>Website QR</h3><p>Turn any website or page link into a scannable QR code instantly.</p></article>
+        <article class="card"><div class="big">📶</div><h3>WiFi QR</h3><p>Let people connect to a wireless network without typing the password.</p></article>
+        <article class="card"><div class="big">👤</div><h3>vCard QR</h3><p>Share a complete contact card from a single scan.</p></article>
+        <article class="card"><div class="big">💬</div><h3>WhatsApp QR</h3><p>Create a WhatsApp chat link with an optional pre-filled message.</p></article>
+        <article class="card"><div class="big">💳</div><h3>UPI QR</h3><p>Create a standard UPI payment URI from your UPI ID and optional amount.</p></article>
+        <article class="card"><div class="big">🎨</div><h3>QR Designer</h3><p>Customize patterns, colors, logo, size, margins and error correction.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="types">
+    <div class="section-inner">
+      <h2>25+ QR Code Types</h2>
+      <p class="section-lead">The interface is ready for common QR use cases. Some types encode directly in the QR, while URL-based types open your chosen online destination.</p>
+      <div class="cards">
+        <article class="card"><b>Website · Text · Email · Phone · SMS</b><p>Fast, simple, static QR payloads.</p></article>
+        <article class="card"><b>WiFi · vCard · Location · Event</b><p>Structured QR formats for everyday sharing.</p></article>
+        <article class="card"><b>WhatsApp · UPI · YouTube · Social</b><p>Ready-made link formats for popular services.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div><strong>QR STUDIO</strong> · Free browser QR generator</div>
+      <div>Static QR codes generated locally in your browser.</div>
+    </div>
+  </footer>
+
+<script>
+  const types = [
+    ["website","🌐","Website"],["text","📝","Text"],["wifi","📶","WiFi"],["vcard","👤","vCard"],
+    ["email","✉️","Email"],["phone","📞","Phone"],["sms","💬","SMS"],["whatsapp","🟢","WhatsApp"],
+    ["location","📍","Location"],["event","📅","Event"],["upi","💳","UPI Payment"],["youtube","▶️","YouTube"],
+    ["instagram","📸","Instagram"],["facebook","f","Facebook"],["linkedin","in","LinkedIn"],["twitter","𝕏","X / Twitter"],
+    ["app","📱","App"],["pdf","📄","PDF Link"],["image","🖼️","Image"],["video","🎥","Video"],
+    ["menu","🍽️","Menu"],["rating","⭐","Review"],["business","🏢","Business"],["coupon","🎟️","Coupon"],
+    ["crypto","₿","Crypto"]
+  ];
+
+  const grid = document.getElementById("typeGrid");
+  const form = document.getElementById("dynamicForm");
+  const qrCanvas = document.getElementById("qrCanvas");
+  let currentType = "website";
+  let qr;
+  let currentPayload = "";
+  let uploadedLogoData = "";
+
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  types.forEach(([id,ico,name])=>{
+    const b=document.createElement("button");
+    b.className="type"+(id==="website"?" active":"");
+    b.innerHTML=`<span class="ico">${ico}</span>${name}`;
+    b.onclick=()=>selectType(id,b);
+    grid.appendChild(b);
+  });
+
+  function input(id,label,placeholder="",type="text"){
+    return `<label class="label">${label}</label><input class="field" id="${id}" type="${type}" placeholder="${esc(placeholder)}">`;
+  }
+  function area(id,label,placeholder=""){
+    return `<label class="label">${label}</label><textarea id="${id}" placeholder="${esc(placeholder)}"></textarea>`;
+  }
+
+  function selectType(id,button){
+    currentType=id;
+    document.querySelectorAll(".type").forEach(x=>x.classList.remove("active"));
+    button?.classList.add("active");
+    renderForm();
+    updateQR();
+  }
+
+  function renderForm(){
+    let h="";
+    switch(currentType){
+      case "website": h=input("url","Enter your website or page link *","https://www.example.com"); break;
+      case "text": h=area("text","Enter text *","Type your message, note or information..."); break;
+      case "wifi":
+        h=`${input("ssid","Network name (SSID) *","My WiFi")}
+           ${input("wifiPass","Password","Your password")}
+           <label class="label">Security</label><select id="wifiSec"><option>WPA</option><option>WEP</option><option value="nopass">No password</option></select>
+           <label style="display:flex;gap:8px;align-items:center;margin-top:13px;font-size:13px"><input id="hiddenWifi" type="checkbox"> Hidden network</label>`; break;
+      case "vcard":
+        h=`${input("first","First name *","John")}${input("last","Last name","Doe")}
+           <div class="form-grid">${input("vphone","Phone","+91 9876543210")}${input("vemail","Email","john@example.com")}</div>
+           ${input("vcompany","Company","Company name")}${input("vwebsite","Website","https://example.com")}`; break;
+      case "email":
+        h=`${input("email","Email address *","hello@example.com","email")}${input("subject","Subject","Hello")}${area("message","Message","Pre-filled email message...")}`; break;
+      case "phone": h=input("phone","Phone number *","+91 9876543210","tel"); break;
+      case "sms": h=`${input("smsPhone","Phone number *","+91 9876543210","tel")}${area("smsText","Message","Hello!")}`; break;
+      case "whatsapp": h=`${input("waPhone","WhatsApp number *","919876543210","tel")}${area("waText","Message","Hello! I found you through your QR code.")}`; break;
+      case "location": h=`${input("lat","Latitude *","28.6139","number")}${input("lng","Longitude *","77.2090","number")}${input("locLabel","Location name","New Delhi")}`; break;
+      case "event": h=`${input("eventTitle","Event title *","My Event")}${input("eventLocation","Location","Conference Hall")}${input("eventStart","Start date/time","2026-08-20T10:00","datetime-local")}${input("eventEnd","End date/time","2026-08-20T12:00","datetime-local")}${area("eventDesc","Description","Event details...")}`; break;
+      case "upi": h=`${input("upiId","UPI ID *","yourname@upi")}${input("upiName","Payee name","Your Name")}${input("upiAmount","Amount (optional)","100","number")}${input("upiNote","Transaction note","Payment")}`; break;
+      case "youtube": h=input("yt","YouTube URL *","https://www.youtube.com/watch?v=..."); break;
+      case "instagram": h=input("ig","Instagram profile URL *","https://instagram.com/username"); break;
+      case "facebook": h=input("fb","Facebook profile/page URL *","https://facebook.com/yourpage"); break;
+      case "linkedin": h=input("li","LinkedIn profile URL *","https://linkedin.com/in/username"); break;
+      case "twitter": h=input("tw","X/Twitter profile URL *","https://x.com/username"); break;
+      case "app": h=`${input("appAndroid","Google Play URL","https://play.google.com/store/apps/details?id=...")}${input("appIos","Apple App Store URL","https://apps.apple.com/app/...")}`; break;
+      case "pdf": h=input("pdf","Public PDF URL *","https://example.com/document.pdf"); break;
+      case "image": h=input("imageUrl","Public image/gallery URL *","https://example.com/gallery"); break;
+      case "video": h=input("videoUrl","Public video URL *","https://example.com/video"); break;
+      case "menu": h=input("menuUrl","Menu URL or PDF URL *","https://example.com/menu"); break;
+      case "rating": h=input("ratingUrl","Review/rating URL *","https://g.page/r/.../review"); break;
+      case "business": h=`${input("bizName","Business name *","My Business")}${input("bizUrl","Business website","https://example.com")}${input("bizPhone","Phone","+91 9876543210")}${input("bizAddress","Address","Your business address")}`; break;
+      case "coupon": h=`${input("couponUrl","Coupon/offer URL *","https://example.com/offer")}${input("couponCode","Coupon code","SAVE20")}`; break;
+      case "crypto": h=`${input("cryptoAddress","Wallet address *","Enter wallet address")}${input("cryptoAmount","Amount (optional)","")}`; break;
+    }
+    form.innerHTML=h;
+    form.querySelectorAll("input,textarea,select").forEach(el=>el.addEventListener("input",updateQR));
+    form.querySelectorAll("input,textarea,select").forEach(el=>el.addEventListener("change",updateQR));
+  }
+
+  function val(id){return document.getElementById(id)?.value?.trim() || ""}
+
+  function buildPayload(){
+    switch(currentType){
+      case "website": return val("url");
+      case "text": return val("text");
+      case "wifi": {
+        const sec=val("wifiSec")||"WPA";
+        const pass=val("wifiPass");
+        const hidden=document.getElementById("hiddenWifi")?.checked?"true":"false";
+        return `WIFI:T:${sec};S:${escapeQR(val("ssid"))};P:${escapeQR(pass)};H:${hidden};;`;
+      }
+      case "vcard": return `BEGIN:VCARD\nVERSION:3.0\nN:${escapeQR(val("last"))};${escapeQR(val("first"))};;;\nFN:${escapeQR((val("first")+" "+val("last")).trim())}\nORG:${escapeQR(val("vcompany"))}\nTEL:${escapeQR(val("vphone"))}\nEMAIL:${escapeQR(val("vemail"))}\nURL:${escapeQR(val("vwebsite"))}\nEND:VCARD`;
+      case "email": return `mailto:${val("email")}?subject=${encodeURIComponent(val("subject"))}&body=${encodeURIComponent(val("message"))}`;
+      case "phone": return `tel:${val("phone")}`;
+      case "sms": return `SMSTO:${val("smsPhone")}:${val("smsText")}`;
+      case "whatsapp": return `https://wa.me/${val("waPhone").replace(/\D/g,"")}?text=${encodeURIComponent(val("waText"))}`;
+      case "location": return `geo:${val("lat")},${val("lng")}${val("locLabel")?`?q=${encodeURIComponent(val("lat")+","+val("lng")+" "+val("locLabel"))}`:""}`;
+      case "event": return buildEvent();
+      case "upi": {
+        let u=`upi://pay?pa=${encodeURIComponent(val("upiId"))}&pn=${encodeURIComponent(val("upiName"))}`;
+        if(val("upiAmount")) u+=`&am=${encodeURIComponent(val("upiAmount"))}`;
+        if(val("upiNote")) u+=`&tn=${encodeURIComponent(val("upiNote"))}`;
+        u+="&cu=INR"; return u;
+      }
+      case "youtube": return val("yt");
+      case "instagram": return val("ig");
+      case "facebook": return val("fb");
+      case "linkedin": return val("li");
+      case "twitter": return val("tw");
+      case "app": return val("appAndroid") || val("appIos");
+      case "pdf": return val("pdf");
+      case "image": return val("imageUrl");
+      case "video": return val("videoUrl");
+      case "menu": return val("menuUrl");
+      case "rating": return val("ratingUrl");
+      case "business": return val("bizUrl") || `BEGIN:VCARD\nVERSION:3.0\nFN:${val("bizName")}\nTEL:${val("bizPhone")}\nADR:${val("bizAddress")}\nURL:${val("bizUrl")}\nEND:VCARD`;
+      case "coupon": return val("couponUrl") || val("couponCode");
+      case "crypto": return val("cryptoAddress");
+      default:return "";
+    }
+  }
+
+  function escapeQR(s){return String(s).replace(/([\\;,:])/g,"\\$1").replace(/\n/g,"\\n")}
+  function buildEvent(){
+    const start=val("eventStart").replace(/[-:]/g,"").replace(/\.\d+/,"");
+    const end=val("eventEnd").replace(/[-:]/g,"").replace(/\.\d+/,"");
+    return `BEGIN:VEVENT\nSUMMARY:${val("eventTitle")}\nLOCATION:${val("eventLocation")}\nDTSTART:${start}\nDTEND:${end}\nDESCRIPTION:${val("eventDesc")}\nEND:VEVENT`;
+  }
+
+  function validPayload(p){
+    if(!p) return false;
+    if(["website","youtube","instagram","facebook","linkedin","twitter","pdf","image","video","menu","rating"].includes(currentType)){
+      try{return /^https?:\/\//i.test(p)}catch(e){return false}
+    }
+    if(currentType==="email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("email"));
+    if(currentType==="phone"||currentType==="sms") return val(currentType==="phone"?"phone":"smsPhone").length>=5;
+    if(currentType==="whatsapp") return val("waPhone").replace(/\D/g,"").length>=8;
+    return true;
+  }
+
+  function getOptions(){
+    const size=Number(document.getElementById("qrSize").value);
+    const fg=document.getElementById("fgColor").value;
+    const bg=document.getElementById("bgColor").value;
+    const dot=document.getElementById("dotType").value;
+    const corner=document.getElementById("cornerType").value;
+    const margin=Number(document.getElementById("margin").value)||10;
+    const logo=uploadedLogoData || val("logoUrl");
+    return {
+      width:size,height:size,type:"canvas",data:currentPayload,
+      margin,
+      qrOptions:{errorCorrectionLevel:document.getElementById("ecLevel").value},
+      dotsOptions:{color:fg,type:dot},
+      cornersSquareOptions:{color:fg,type:corner},
+      cornersDotOptions:{color:fg,type:corner==="square"?"square":"dot"},
+      backgroundOptions:{color:bg},
+      image:logo||undefined,
+      imageOptions:{crossOrigin:"anonymous",margin:8,imageSize:Number(document.getElementById("logoSize").value)/100}
+    };
+  }
+
+  function updateQR(){
+    currentPayload=buildPayload();
+    qrCanvas.innerHTML="";
+    if(!validPayload(currentPayload)){
+      qrCanvas.innerHTML='<div style="width:260px;height:260px;border:2px dashed #d8dddf;border-radius:18px;display:flex;align-items:center;justify-content:center;color:#8b9296;font-size:13px;padding:30px">Enter valid information to preview your QR code.</div>';
+      document.getElementById("status").textContent="Waiting for valid content…";
+      return;
+    }
+    try{
+      qr=new QRCodeStyling(getOptions());
+      const wrap=document.createElement("div");
+      wrap.className="cyber-qr-wrap" + (document.getElementById("glowToggle")?.checked !== false ? " glow" : "");
+      const oldCanvas=document.createElement("div");
+      wrap.appendChild(oldCanvas);
+      const sticker=document.getElementById("frameText")?.value?.trim();
+      if(sticker){
+        const stickerEl=document.createElement("div");
+        stickerEl.className="sticker-text";
+        stickerEl.textContent=sticker;
+        wrap.appendChild(stickerEl);
+      }
+      if(document.getElementById("scanToggle")?.checked !== false){
+        const scan=document.createElement("div");
+        scan.className="qr-scanline";
+        wrap.appendChild(scan);
+      }
+      qr.append(wrap);
+      qrCanvas.append(wrap);
+      document.getElementById("status").textContent="✓ QR generated locally in your browser.";
+    }catch(e){
+      document.getElementById("status").textContent="Could not generate QR. Check the fields.";
+    }
+  }
+
+  function bindDesign(){
+    ["dotType","cornerType","fgColor","bgColor","logoUrl","logoSize","qrSize","margin","ecLevel","frameText","glowToggle","scanToggle"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) return;
+      el.addEventListener("input",()=>{
+        if(id==="fgColor")document.getElementById("fgText").textContent=el.value.toUpperCase();
+        if(id==="bgColor")document.getElementById("bgText").textContent=el.value.toUpperCase();
+        updateQR();
+      });
+      el.addEventListener("change",updateQR);
+    });
+
+    document.querySelectorAll(".design-tab").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        document.querySelectorAll(".design-tab").forEach(x=>x.classList.remove("active"));
+        document.querySelectorAll(".design-panel").forEach(x=>x.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.designPanel).classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".color-preset").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        document.querySelectorAll(".color-preset").forEach(x=>x.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("fgColor").value=btn.dataset.fg;
+        document.getElementById("bgColor").value=btn.dataset.bg;
+        document.getElementById("fgText").textContent=btn.dataset.fg;
+        document.getElementById("bgText").textContent=btn.dataset.bg;
+        updateQR();
+      });
+    });
+
+    document.querySelectorAll(".shape-card").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        document.querySelectorAll(".shape-card").forEach(x=>x.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("dotType").value=btn.dataset.dot;
+        updateQR();
+      });
+    });
+
+    document.querySelectorAll(".edge-card").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        document.querySelectorAll(".edge-card").forEach(x=>x.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("cornerType").value=btn.dataset.corner;
+        updateQR();
+      });
+    });
+
+    document.querySelectorAll(".sticker-preset").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        document.querySelectorAll(".sticker-preset").forEach(x=>x.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("frameText").value=btn.dataset.sticker;
+        updateQR();
+      });
+    });
+  }
+
+  document.getElementById("contentTab").onclick=()=>{
+    document.getElementById("contentPane").classList.remove("hidden");
+    document.getElementById("designPane").classList.add("hidden");
+    document.getElementById("contentTab").classList.add("active");
+    document.getElementById("designTab").classList.remove("active");
+  };
+  document.getElementById("designTab").onclick=()=>{
+    document.getElementById("designPane").classList.remove("hidden");
+    document.getElementById("contentPane").classList.add("hidden");
+    document.getElementById("designTab").classList.add("active");
+    document.getElementById("contentTab").classList.remove("active");
+    updateQR();
+  };
+
+  document.getElementById("downloadPng").onclick=()=>{
+    if(!qr){alert("Please enter valid QR content first.");return}
+    qr.download({name:"qr-studio-code",extension:"png"});
+  };
+  document.getElementById("downloadSvg").onclick=()=>{
+    if(!qr){alert("Please enter valid QR content first.");return}
+    qr.download({name:"qr-studio-code",extension:"svg"});
+  };
+  document.getElementById("copyData").onclick=async()=>{
+    if(!currentPayload){alert("Nothing to copy.");return}
+    try{await navigator.clipboard.writeText(currentPayload);document.getElementById("status").textContent="✓ QR data copied to clipboard."}
+    catch(e){alert(currentPayload)}
+  };
+  document.getElementById("resetBtn").onclick=()=>{
+    location.reload();
+  };
+
+  document.getElementById("logoFile").addEventListener("change",(event)=>{
+    const file=event.target.files?.[0];
+    if(!file){ uploadedLogoData=""; updateQR(); return; }
+    if(file.size > 2 * 1024 * 1024){
+      alert("Please choose a logo smaller than 2 MB.");
+      event.target.value="";
+      uploadedLogoData="";
+      updateQR();
+      return;
+    }
+    const reader=new FileReader();
+    reader.onload=()=>{
+      uploadedLogoData=reader.result;
+      document.getElementById("logoUrl").value="";
+      updateQR();
+    };
+    reader.readAsDataURL(file);
+  });
+
+
+  const logoDrop=document.getElementById("logoDrop");
+  if(logoDrop){
+    ["dragenter","dragover"].forEach(evt=>logoDrop.addEventListener(evt,e=>{
+      e.preventDefault(); logoDrop.style.borderColor="#D4AF37"; logoDrop.style.boxShadow="0 0 30px rgba(212,175,55,.10)";
+    }));
+    ["dragleave","drop"].forEach(evt=>logoDrop.addEventListener(evt,e=>{
+      e.preventDefault(); logoDrop.style.borderColor=""; logoDrop.style.boxShadow="";
+    }));
+    logoDrop.addEventListener("drop",e=>{
+      const file=e.dataTransfer.files?.[0];
+      if(!file) return;
+      const input=document.getElementById("logoFile");
+      const dt=new DataTransfer(); dt.items.add(file); input.files=dt.files;
+      input.dispatchEvent(new Event("change",{bubbles:true}));
+    });
+  }
+
+  document.getElementById("logoUrl").addEventListener("input",()=>{
+    if(document.getElementById("logoUrl").value.trim()){
+      uploadedLogoData="";
+      const f=document.getElementById("logoFile");
+      if(f) f.value="";
+    }
+    updateQR();
+  });
+
+  renderForm();
+  bindDesign();
+  updateQR();
+</script>
+</body>
+</html>
